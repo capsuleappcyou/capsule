@@ -32,6 +32,7 @@ mod tests {
             .to_request();
 
         let resp = app.call(req).await.unwrap();
+
         assert_eq!(resp.status(), http::StatusCode::CREATED);
     }
 }
