@@ -1,6 +1,8 @@
 use std::{error, fmt};
 use std::fmt::Debug;
 
+use downcast_rs::DowncastSync;
+
 pub mod pwd_credential;
 
 #[derive(Debug, Clone)]
@@ -18,6 +20,8 @@ impl error::Error for CredentialError {
     }
 }
 
-pub trait Credential {
+pub trait Credential: DowncastSync {
     fn verify(&self, credential: Box<dyn Credential>) -> Result<(), CredentialError>;
 }
+
+impl_downcast!(Credential);

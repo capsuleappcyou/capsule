@@ -1,5 +1,3 @@
-use mockall::Any;
-
 use crate::user::credential::{Credential, CredentialError};
 
 #[derive(Debug, PartialEq)]
@@ -9,16 +7,15 @@ pub struct PwdCredential {
 
 impl Credential for PwdCredential {
     fn verify(&self, input_credential: Box<dyn Credential>) -> Result<(), CredentialError> {
-        let pwd_credential = input_credential.as_any().downcast_ref::<PwdCredential>();
+        let pwd_credential = input_credential.downcast_ref::<PwdCredential>();
 
         match pwd_credential {
-            Some(pwd) => {
-                return if pwd.plaintext == self.plaintext {
+            Some(pwd) =>
+                if pwd.plaintext == self.plaintext {
                     Ok(())
                 } else {
                     Err(CredentialError)
-                };
-            }
+                },
             _ => Err(CredentialError)
         }
     }
@@ -26,16 +23,26 @@ impl Credential for PwdCredential {
 
 #[cfg(test)]
 mod tests {
-    use crate::user::credential::Credential;
+    use crate::user::credential::{Credential, CredentialError};
     use crate::user::credential::pwd_credential::PwdCredential;
 
     #[test]
     fn should_ok_given_correct_password_credential() {
-        let pwd1 = PwdCredential { plaintext: "password".to_string() };
-        let pwd2 = PwdCredential { plaintext: "password".to_string() };
+        let pwd = PwdCredential { plaintext: "password".to_string() };
+        let input_pwd = PwdCredential { plaintext: "password".to_string() };
 
-        let result = pwd1.verify(Box::new(pwd2));
+        let result = pwd.verify(Box::new(input_pwd));
 
         assert_eq!(result.is_ok(), true)
+    }
+
+    #[test]
+    fn should_error_given_incorrect_password_credential() {
+        let pwd = PwdCredential { plaintext: "password".to_string() };
+        let input_pwd = PwdCredential { plaintext: "wrong".to_string() };
+
+        let result = pwd.verify(Box::new(input_pwd));
+
+        assert_eq!(result.is_ok(), false);
     }
 }
