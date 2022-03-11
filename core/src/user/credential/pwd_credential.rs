@@ -23,7 +23,7 @@ impl Credential for PwdCredential {
 
 #[cfg(test)]
 mod tests {
-    use crate::user::credential::{Credential, CredentialError};
+    use crate::user::credential::Credential;
     use crate::user::credential::pwd_credential::PwdCredential;
 
     #[test]
