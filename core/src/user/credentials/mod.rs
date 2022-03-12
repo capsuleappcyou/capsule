@@ -1,5 +1,5 @@
 use crate::user::credential::Credential;
 
-pub trait Credentials<T: Credential> {
-    fn add(self, credential: T);
+pub trait Credentials {
+    fn add(&mut self, credential: Box<dyn Credential>);
 }

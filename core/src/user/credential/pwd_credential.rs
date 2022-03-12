@@ -2,7 +2,7 @@ use crate::user::credential::{Credential, CredentialError};
 
 #[derive(Debug, PartialEq)]
 pub struct PwdCredential {
-    plaintext: String,
+    pub plaintext: String,
 }
 
 impl Credential for PwdCredential {
