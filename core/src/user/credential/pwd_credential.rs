@@ -6,16 +6,13 @@ pub struct PwdCredential {
 }
 
 impl Credential for PwdCredential {
-    fn verify(&self, input_credential: Box<dyn Credential>) -> Result<(), CredentialError> {
+    fn verify(&self, input_credential: &dyn Credential) -> Result<(), CredentialError> {
         let pwd_credential = input_credential.downcast_ref::<PwdCredential>();
 
         match pwd_credential {
-            Some(pwd) =>
-                if pwd.plaintext == self.plaintext {
-                    Ok(())
-                } else {
-                    Err(CredentialError)
-                },
+            Some(p) if p.plaintext == self.plaintext => {
+                Ok(())
+            }
             _ => Err(CredentialError)
         }
     }
@@ -31,7 +28,7 @@ mod tests {
         let pwd = PwdCredential { plaintext: "password".to_string() };
         let input_pwd = PwdCredential { plaintext: "password".to_string() };
 
-        let result = pwd.verify(Box::new(input_pwd));
+        let result = pwd.verify(&input_pwd);
 
         assert_eq!(result.is_ok(), true)
     }
@@ -41,7 +38,7 @@ mod tests {
         let pwd = PwdCredential { plaintext: "password".to_string() };
         let input_pwd = PwdCredential { plaintext: "wrong".to_string() };
 
-        let result = pwd.verify(Box::new(input_pwd));
+        let result = pwd.verify(&input_pwd);
 
         assert_eq!(result.is_ok(), false);
     }
