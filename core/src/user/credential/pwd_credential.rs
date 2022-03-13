@@ -16,6 +16,10 @@ impl Credential for PwdCredential {
             _ => Err(CredentialError)
         }
     }
+
+    fn name(&self) -> String {
+        String::from("password")
+    }
 }
 
 #[cfg(test)]

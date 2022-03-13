@@ -22,6 +22,7 @@ impl error::Error for CredentialError {
 
 pub trait Credential: DowncastSync {
     fn verify(&self, credential: &dyn Credential) -> Result<(), CredentialError>;
+    fn name(&self) -> String;
 }
 
 impl_downcast!(Credential);
