@@ -34,7 +34,7 @@ pub trait UserFactory {
 #[cfg(test)]
 mod tests {
     use crate::user::{User, UserFactory};
-    use crate::user::credential::Credential;
+    use crate::user::credential::{Credential, CredentialError};
     use crate::user::credential::pwd_credential::PwdCredential;
     use crate::user::credentials::Credentials;
 
@@ -68,6 +68,18 @@ mod tests {
         }
     }
 
+    struct UnSupportedCredential;
+
+    impl Credential for UnSupportedCredential {
+        fn verify(&self, _credential: &dyn Credential) -> Result<(), CredentialError> {
+            Ok(())
+        }
+
+        fn name(&self) -> String {
+            String::from("unsupported")
+        }
+    }
+
     #[test]
     fn should_create_user() {
         let user = TestUserFactory::create_user(String::from("test"));
@@ -76,7 +88,7 @@ mod tests {
     }
 
     #[test]
-    fn should_verify_password_credential() {
+    fn should_verify_password_given_correct_credential() {
         let mut user = TestUserFactory::create_user(String::from("test"));
 
         let password = Box::new(PwdCredential { plaintext: String::from("password") });
@@ -86,5 +98,31 @@ mod tests {
         let verify_result = user.verify_credential(input_password);
 
         assert_eq!(verify_result.is_ok(), true);
+    }
+
+    #[test]
+    fn should_verify_password_given_incorrect_credential() {
+        let mut user = TestUserFactory::create_user(String::from("test"));
+
+        let password = Box::new(PwdCredential { plaintext: String::from("password") });
+        user.add_credential(password);
+
+        let wrong_password = Box::new(PwdCredential { plaintext: String::from("wrong password") });
+        let verify_result = user.verify_credential(wrong_password);
+
+        assert_eq!(verify_result.is_err(), true);
+    }
+
+    #[test]
+    fn should_verify_password_given_unsupported_credential() {
+        let mut user = TestUserFactory::create_user(String::from("test"));
+
+        let password = Box::new(PwdCredential { plaintext: String::from("password") });
+        user.add_credential(password);
+
+        let unsupported_credential = Box::new(UnSupportedCredential {});
+        let verify_result = user.verify_credential(unsupported_credential);
+
+        assert_eq!(verify_result.is_err(), true);
     }
 }
