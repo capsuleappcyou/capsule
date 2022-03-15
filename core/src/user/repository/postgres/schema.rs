@@ -1,7 +1,7 @@
 table! {
-    capsule_user (id) {
+    capsule_users (id) {
         id -> Int4,
         name -> Varchar,
-        create_at -> Nullable<Timestamp>,
+        create_at -> Timestamp,
     }
 }

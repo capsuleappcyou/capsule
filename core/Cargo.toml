@@ -21,3 +21,5 @@ mockall = "0.11.0"
 
 [dependencies]
 downcast-rs = "1.2.0"
+diesel = { version = "1.4.0", features = ["postgres", "chrono"] }
+chrono = "0.4"

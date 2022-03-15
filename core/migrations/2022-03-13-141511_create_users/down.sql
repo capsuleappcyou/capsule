@@ -1,1 +1,1 @@
-DROP TABLE capsule_user
+DROP TABLE capsule_users
