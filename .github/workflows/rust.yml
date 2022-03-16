@@ -1,30 +1,30 @@
-name: Rust
+name: capsule
 
 on:
   push:
-    branches: [ master ]
+    branches:
+      - master
   pull_request:
-    branches: [ master ]
-
+    branches:
+      - master
 env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  build:
+  container-job:
     runs-on: ubuntu-latest
+
     services:
       postgres:
-        image: postgres:bullseye
+        image: postgres:10.8
         env:
+          POSTGRES_USER: postgres
           POSTGRES_PASSWORD: 123456
           POSTGRES_DB: capsule
         ports:
           - 5432:5432
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
+        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
+
     steps:
       - uses: actions/checkout@v2
       - name: Build
