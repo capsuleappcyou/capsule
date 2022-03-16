@@ -17,6 +17,7 @@ jobs:
         image: postgres:bullseye
         env:
           POSTGRES_PASSWORD: 123456
+          POSTGRES_DB: capsule
         options: >-
           --health-cmd pg_isready
           --health-interval 10s
