@@ -96,6 +96,6 @@ mod tests {
 
     fn establish_connection() -> PgConnection {
         PgConnection::establish("postgres://postgres:123456@postgres/capsule")
-            .expect(&format!("Error connecting to {}", "postgres://postgres:123456@127.0.0.1/capsule"))
+            .expect(&format!("Error connecting to {}", "postgres://postgres:123456@postgres/capsule"))
     }
 }
