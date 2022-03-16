@@ -64,6 +64,7 @@ impl Credentials for PostgresCredentials {
 #[cfg(test)]
 mod tests {
     use diesel::result::Error;
+    use diesel_migrations::embed_migrations;
 
     use crate::diesel::*;
     use crate::user::repository::postgres::models::SavedUser;
@@ -71,10 +72,14 @@ mod tests {
 
     use super::*;
 
+    embed_migrations!("./migrations");
+
     #[test]
     fn should_add_user() {
-        let user = PostgresUserFactory::create_user(String::from("first_capsule_user"));
         let connection = &establish_connection();
+        embedded_migrations::run_with_output(connection, &mut std::io::stdout());
+
+        let user = PostgresUserFactory::create_user(String::from("first_capsule_user"));
 
         let repository: Box<dyn UserRepository> = Box::new(ProgressUserRepository { connection });
 

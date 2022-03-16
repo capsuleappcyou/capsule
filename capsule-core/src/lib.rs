@@ -15,5 +15,7 @@
 extern crate diesel;
 #[macro_use]
 extern crate downcast_rs;
+#[macro_use]
+extern crate diesel_migrations;
 
 pub mod user;
