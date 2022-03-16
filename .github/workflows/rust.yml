@@ -14,7 +14,7 @@ jobs:
     runs-on: ubuntu-latest
     services:
       postgres:
-        image: postgres
+        image: postgres:bullseye
         env:
           POSTGRES_PASSWORD: 123456
         options: >-
