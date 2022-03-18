@@ -13,8 +13,6 @@
 // limitations under the License.
 use crate::user::User;
 
-mod postgres;
-
 pub trait UserRepository {
     fn add(&self, user: &User);
 

@@ -18,10 +18,10 @@ use diesel::*;
 use crate::user::{User, UserFactory};
 use crate::user::credential::Credential;
 use crate::user::credentials::Credentials;
-use crate::user::repository::postgres::models::{NewUser, SavedUser};
-use crate::user::repository::postgres::schema::capsule_users;
-use crate::user::repository::postgres::schema::capsule_users::dsl::*;
-use crate::user::repository::postgres::schema::capsule_users::name;
+use crate::user::implementation::postgres::models::{NewUser, SavedUser};
+use crate::user::implementation::postgres::schema::capsule_users;
+use crate::user::implementation::postgres::schema::capsule_users::dsl::*;
+use crate::user::implementation::postgres::schema::capsule_users::name;
 use crate::user::repository::UserRepository;
 
 struct PostgresUserRepository<'a> {
@@ -86,8 +86,8 @@ mod tests {
     use diesel_migrations::embed_migrations;
 
     use crate::diesel::*;
-    use crate::user::repository::postgres::models::SavedUser;
-    use crate::user::repository::postgres::schema::capsule_users::dsl::*;
+    use crate::user::implementation::postgres::models::SavedUser;
+    use crate::user::implementation::postgres::schema::capsule_users::dsl::*;
 
     use super::*;
 
