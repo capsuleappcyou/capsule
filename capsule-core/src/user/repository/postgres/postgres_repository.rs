@@ -14,6 +14,7 @@
 use std::time::SystemTime;
 
 use diesel::*;
+use diesel::types::IsNull::No;
 
 use crate::user::{User, UserFactory};
 use crate::user::credential::Credential;
@@ -24,11 +25,11 @@ use crate::user::repository::postgres::schema::capsule_users::dsl::*;
 use crate::user::repository::postgres::schema::capsule_users::name;
 use crate::user::repository::UserRepository;
 
-struct ProgressUserRepository<'a> {
+struct PostgresUserRepository<'a> {
     connection: &'a PgConnection,
 }
 
-impl<'a> UserRepository for ProgressUserRepository<'a> {
+impl<'a> UserRepository for PostgresUserRepository<'a> {
     fn add(&self, user: &User) {
         let new_user = NewUser {
             name: &user.user_name.as_str(),
@@ -46,26 +47,47 @@ impl<'a> UserRepository for ProgressUserRepository<'a> {
             .filter(name.eq(user_name))
             .first::<SavedUser>(*&self.connection);
 
-        let user_factory = PostgresUserFactory;
+        let user_factory = PostgresUserFactory{ connection: self.connection };
 
         match query_result {
-            Ok(saved_user) => Some(user_factory.create_user(saved_user.name)),
+            Ok(saved_user) => {
+                let u = user_factory.create_user("ss".to_string());
+
+                let user = User { user_name: saved_user.name, credentials: Box::new(PostgresCredentials { connection: self.connection }) };
+
+                Some(user)
+            },
             Err(_) => None
         }
     }
 }
 
-pub struct PostgresUserFactory;
+pub struct PostgresUserFactory<'a> {
+    connection: &'a PgConnection,
+}
 
-impl UserFactory for PostgresUserFactory {
+impl<'a> UserFactory for PostgresUserFactory<'a> {
     fn create_user(&self, user_name: String) -> User {
-        User { user_name, credentials: Box::new(PostgresCredentials {}) }
+        let credentials = Box::new(Dummy {});
+        User { user_name, credentials }
     }
 }
 
-struct PostgresCredentials;
+struct Dummy {}
 
-impl Credentials for PostgresCredentials {
+impl Credentials for Dummy {
+    fn add(&mut self, credential: Box<dyn Credential>) {}
+
+    fn get_credential_by_name(&self, _name: &str) -> Option<&Box<dyn Credential>> {
+        None
+    }
+}
+
+struct PostgresCredentials<'a> {
+    connection: &'a PgConnection,
+}
+
+impl<'a> Credentials for PostgresCredentials<'a> {
     fn add(&mut self, _credential: Box<dyn Credential>) {
         todo!()
     }
@@ -106,11 +128,11 @@ mod tests {
     fn should_add_user() {
         let connection = &get_test_db_connection();
 
-        let user_factory = PostgresUserFactory;
+        let user_factory = PostgresUserFactory { connection };
 
         let user = user_factory.create_user(String::from("first_capsule_user"));
 
-        let repository: Box<dyn UserRepository> = Box::new(ProgressUserRepository { connection });
+        let repository: Box<dyn UserRepository> = Box::new(PostgresUserRepository { connection });
 
         repository.add(&user);
 
@@ -128,11 +150,11 @@ mod tests {
     fn should_find_user_by_user_name() {
         let connection = &get_test_db_connection();
 
-        let user_factory = PostgresUserFactory;
+        let user_factory = PostgresUserFactory { connection };
 
         let user = user_factory.create_user(String::from("first_capsule_user"));
 
-        let repository: Box<dyn UserRepository> = Box::new(ProgressUserRepository { connection });
+        let repository: Box<dyn UserRepository> = Box::new(PostgresUserRepository { connection });
 
         repository.add(&user);
 

@@ -20,12 +20,12 @@ pub mod credential;
 pub mod credentials;
 pub mod repository;
 
-pub struct User {
+pub struct User<'a> {
     pub user_name: String,
-    credentials: Box<dyn Credentials>,
+    credentials: Box<dyn Credentials + 'a>,
 }
 
-impl User {
+impl<'a> User<'a> {
     pub fn add_credential(&mut self, credential: Box<dyn Credential>) {
         self.credentials.add(credential);
     }
