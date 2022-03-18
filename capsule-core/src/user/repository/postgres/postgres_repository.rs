@@ -14,7 +14,6 @@
 use std::time::SystemTime;
 
 use diesel::*;
-use diesel::types::IsNull::No;
 
 use crate::user::{User, UserFactory};
 use crate::user::credential::Credential;
@@ -47,16 +46,12 @@ impl<'a> UserRepository for PostgresUserRepository<'a> {
             .filter(name.eq(user_name))
             .first::<SavedUser>(*&self.connection);
 
-        let user_factory = PostgresUserFactory{ connection: self.connection };
-
         match query_result {
             Ok(saved_user) => {
-                let u = user_factory.create_user("ss".to_string());
-
                 let user = User { user_name: saved_user.name, credentials: Box::new(PostgresCredentials { connection: self.connection }) };
 
                 Some(user)
-            },
+            }
             Err(_) => None
         }
     }
@@ -68,18 +63,7 @@ pub struct PostgresUserFactory<'a> {
 
 impl<'a> UserFactory for PostgresUserFactory<'a> {
     fn create_user(&self, user_name: String) -> User {
-        let credentials = Box::new(Dummy {});
-        User { user_name, credentials }
-    }
-}
-
-struct Dummy {}
-
-impl Credentials for Dummy {
-    fn add(&mut self, credential: Box<dyn Credential>) {}
-
-    fn get_credential_by_name(&self, _name: &str) -> Option<&Box<dyn Credential>> {
-        None
+        User { user_name, credentials: Box::new(PostgresCredentials { connection: self.connection }) }
     }
 }
 
