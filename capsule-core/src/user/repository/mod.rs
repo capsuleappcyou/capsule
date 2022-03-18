@@ -17,4 +17,6 @@ mod postgres;
 
 pub trait UserRepository {
     fn add(&self, user: &User);
+
+    fn find_by_user_name(&self, user_name: &str) -> Option<User>;
 }

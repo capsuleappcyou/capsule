@@ -18,10 +18,11 @@ use diesel::*;
 use crate::user::{User, UserFactory};
 use crate::user::credential::Credential;
 use crate::user::credentials::Credentials;
-use crate::user::repository::postgres::models::NewUser;
+use crate::user::repository::postgres::models::{NewUser, SavedUser};
+use crate::user::repository::postgres::schema::capsule_users;
+use crate::user::repository::postgres::schema::capsule_users::dsl::*;
+use crate::user::repository::postgres::schema::capsule_users::name;
 use crate::user::repository::UserRepository;
-
-use super::schema::*;
 
 struct ProgressUserRepository<'a> {
     connection: &'a PgConnection,
@@ -38,6 +39,17 @@ impl<'a> UserRepository for ProgressUserRepository<'a> {
             .values(&new_user)
             .execute(*&self.connection)
             .unwrap();
+    }
+
+    fn find_by_user_name(&self, user_name: &str) -> Option<User> {
+        let query_result = capsule_users
+            .filter(name.eq(user_name))
+            .first::<SavedUser>(*&self.connection);
+
+        match query_result {
+            Ok(saved_user) => Some(PostgresUserFactory::create_user(saved_user.name)),
+            Err(_) => None
+        }
     }
 }
 
@@ -105,6 +117,24 @@ mod tests {
 
             let first_capsule_user: &SavedUser = results.get(0).unwrap();
             assert_eq!(first_capsule_user.name, "first_capsule_user");
+
+            Ok(())
+        });
+    }
+
+    #[test]
+    fn should_find_user_by_user_name() {
+        let connection = &get_db_connection();
+
+        let user = PostgresUserFactory::create_user(String::from("first_capsule_user"));
+
+        let repository: Box<dyn UserRepository> = Box::new(ProgressUserRepository { connection });
+        connection.test_transaction::<_, Error, _>(|| {
+            repository.add(&user);
+
+            let first_capsule_user = repository.find_by_user_name("first_capsule_user").unwrap();
+
+            assert_eq!(first_capsule_user.user_name, "first_capsule_user");
 
             Ok(())
         });
