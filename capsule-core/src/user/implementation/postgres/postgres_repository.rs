@@ -76,7 +76,7 @@ mod tests {
 
     use super::*;
 
-    embed_migrations!("./migrations");
+    embed_migrations!("./migrations/postgres");
 
     fn get_test_db_connection() -> PgConnection {
         let connection = establish_connection();
