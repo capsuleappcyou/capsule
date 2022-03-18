@@ -1,5 +1,5 @@
 [workspace]
 members = [
-    "api-server",
+    "capsule-api-server",
     "capsule-core",
 ]
