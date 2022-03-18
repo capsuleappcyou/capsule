@@ -74,10 +74,21 @@ mod tests {
 
     embed_migrations!("./migrations");
 
+    fn get_db_connection() -> PgConnection {
+        let connection = establish_connection();
+
+        let result = embedded_migrations::run_with_output(&connection, &mut std::io::stdout());
+        match result {
+            Ok(_) => (),
+            Err(_) => panic!("database migration failed.")
+        }
+
+        connection
+    }
+
     #[test]
     fn should_add_user() {
-        let connection = &establish_connection();
-        embedded_migrations::run_with_output(connection, &mut std::io::stdout());
+        let connection = &get_db_connection();
 
         let user = PostgresUserFactory::create_user(String::from("first_capsule_user"));
 

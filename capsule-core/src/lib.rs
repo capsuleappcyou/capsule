@@ -1,3 +1,4 @@
+extern crate core;
 // Copyright 2022 the original author or authors.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,8 +15,8 @@
 #[macro_use]
 extern crate diesel;
 #[macro_use]
-extern crate downcast_rs;
-#[macro_use]
 extern crate diesel_migrations;
+#[macro_use]
+extern crate downcast_rs;
 
 pub mod user;
