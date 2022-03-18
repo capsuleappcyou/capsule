@@ -14,3 +14,4 @@
 mod schema;
 mod models;
 pub mod postgres_repository;
+pub(crate) mod postgres_credentials;

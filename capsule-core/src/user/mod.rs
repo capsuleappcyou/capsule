@@ -17,9 +17,9 @@ use crate::user::credential::{Credential, CredentialError};
 use crate::user::credentials::Credentials;
 
 pub mod credential;
-pub mod credentials;
 pub mod repository;
-pub mod implementation;
+pub(crate) mod credentials;
+pub(crate) mod implementation;
 
 pub struct User<'a> {
     pub user_name: String,

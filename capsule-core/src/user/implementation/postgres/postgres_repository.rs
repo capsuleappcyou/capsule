@@ -16,9 +16,8 @@ use std::time::SystemTime;
 use diesel::*;
 
 use crate::user::{User, UserFactory};
-use crate::user::credential::Credential;
-use crate::user::credentials::Credentials;
 use crate::user::implementation::postgres::models::{NewUser, SavedUser};
+use crate::user::implementation::postgres::postgres_credentials::PostgresCredentials;
 use crate::user::implementation::postgres::schema::capsule_users;
 use crate::user::implementation::postgres::schema::capsule_users::dsl::*;
 use crate::user::implementation::postgres::schema::capsule_users::name;
@@ -64,20 +63,6 @@ pub struct PostgresUserFactory<'a> {
 impl<'a> UserFactory for PostgresUserFactory<'a> {
     fn create_user(&self, user_name: String) -> User {
         User { user_name, credentials: Box::new(PostgresCredentials { connection: self.connection }) }
-    }
-}
-
-struct PostgresCredentials<'a> {
-    connection: &'a PgConnection,
-}
-
-impl<'a> Credentials for PostgresCredentials<'a> {
-    fn add(&mut self, _credential: Box<dyn Credential>) {
-        todo!()
-    }
-
-    fn get_credential_by_name(&self, _name: &str) -> Option<&Box<dyn Credential>> {
-        todo!()
     }
 }
 
