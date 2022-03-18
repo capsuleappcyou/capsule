@@ -2,4 +2,4 @@
 # see diesel.rs/guides/configuring-diesel-cli
 
 [print_schema]
-file = "src/user/repository/postgres/schema.rs"
+file = "src/user/implementation/postgres/schema.rs"
