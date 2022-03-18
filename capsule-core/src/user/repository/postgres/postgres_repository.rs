@@ -95,6 +95,11 @@ mod tests {
         connection
     }
 
+    fn establish_connection() -> PgConnection {
+        PgConnection::establish("postgres://postgres:123456@localhost/capsule")
+            .expect(&format!("Error connecting to {}", "postgres://postgres:123456@localhost/capsule"))
+    }
+
     #[test]
     fn should_add_user() {
         let connection = &get_test_db_connection();
@@ -128,10 +133,5 @@ mod tests {
         let first_capsule_user = repository.find_by_user_name("first_capsule_user").unwrap();
 
         assert_eq!(first_capsule_user.user_name, "first_capsule_user");
-    }
-
-    fn establish_connection() -> PgConnection {
-        PgConnection::establish("postgres://postgres:123456@localhost/capsule")
-            .expect(&format!("Error connecting to {}", "postgres://postgres:123456@localhost/capsule"))
     }
 }
