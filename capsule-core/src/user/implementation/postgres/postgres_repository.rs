@@ -131,4 +131,15 @@ mod tests {
 
         assert_eq!(first_capsule_user.user_name, "first_capsule_user");
     }
+
+    #[test]
+    fn should_not_find_user() {
+        let connection = &get_test_db_connection();
+
+        let repository: Box<dyn UserRepository> = Box::new(PostgresUserRepository { connection });
+
+        let first_capsule_user = repository.find_by_user_name("first_capsule_user");
+
+        assert_eq!(first_capsule_user.is_none(), true);
+    }
 }
