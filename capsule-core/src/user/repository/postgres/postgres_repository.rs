@@ -75,7 +75,6 @@ impl Credentials for PostgresCredentials {
 
 #[cfg(test)]
 mod tests {
-    use diesel::result::Error;
     use diesel_migrations::embed_migrations;
 
     use crate::diesel::*;
@@ -86,58 +85,49 @@ mod tests {
 
     embed_migrations!("./migrations");
 
-    fn get_db_connection() -> PgConnection {
+    fn get_test_db_connection() -> PgConnection {
         let connection = establish_connection();
 
-        let result = embedded_migrations::run_with_output(&connection, &mut std::io::stdout());
-        match result {
-            Ok(_) => (),
-            Err(_) => panic!("database migration failed.")
-        }
+        let _ = connection.begin_test_transaction();
+
+        let _ = embedded_migrations::run_with_output(&connection, &mut std::io::stdout());
 
         connection
     }
 
     #[test]
     fn should_add_user() {
-        let connection = &get_db_connection();
+        let connection = &get_test_db_connection();
 
         let user = PostgresUserFactory::create_user(String::from("first_capsule_user"));
 
         let repository: Box<dyn UserRepository> = Box::new(ProgressUserRepository { connection });
 
-        connection.test_transaction::<_, Error, _>(|| {
-            repository.add(&user);
+        repository.add(&user);
 
-            let results: Vec<SavedUser> = capsule_users
-                .filter(name.eq("first_capsule_user"))
-                .limit(1)
-                .load::<SavedUser>(connection)
-                .expect("Error loading users");
+        let results: Vec<SavedUser> = capsule_users
+            .filter(name.eq("first_capsule_user"))
+            .limit(1)
+            .load::<SavedUser>(connection)
+            .expect("Error loading users");
 
-            let first_capsule_user: &SavedUser = results.get(0).unwrap();
-            assert_eq!(first_capsule_user.name, "first_capsule_user");
-
-            Ok(())
-        });
+        let first_capsule_user: &SavedUser = results.get(0).unwrap();
+        assert_eq!(first_capsule_user.name, "first_capsule_user");
     }
 
     #[test]
     fn should_find_user_by_user_name() {
-        let connection = &get_db_connection();
+        let connection = &get_test_db_connection();
 
         let user = PostgresUserFactory::create_user(String::from("first_capsule_user"));
 
         let repository: Box<dyn UserRepository> = Box::new(ProgressUserRepository { connection });
-        connection.test_transaction::<_, Error, _>(|| {
-            repository.add(&user);
 
-            let first_capsule_user = repository.find_by_user_name("first_capsule_user").unwrap();
+        repository.add(&user);
 
-            assert_eq!(first_capsule_user.user_name, "first_capsule_user");
+        let first_capsule_user = repository.find_by_user_name("first_capsule_user").unwrap();
 
-            Ok(())
-        });
+        assert_eq!(first_capsule_user.user_name, "first_capsule_user");
     }
 
     fn establish_connection() -> PgConnection {
