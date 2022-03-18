@@ -46,8 +46,10 @@ impl<'a> UserRepository for ProgressUserRepository<'a> {
             .filter(name.eq(user_name))
             .first::<SavedUser>(*&self.connection);
 
+        let user_factory = PostgresUserFactory;
+
         match query_result {
-            Ok(saved_user) => Some(PostgresUserFactory::create_user(saved_user.name)),
+            Ok(saved_user) => Some(user_factory.create_user(saved_user.name)),
             Err(_) => None
         }
     }
@@ -56,7 +58,7 @@ impl<'a> UserRepository for ProgressUserRepository<'a> {
 pub struct PostgresUserFactory;
 
 impl UserFactory for PostgresUserFactory {
-    fn create_user(user_name: String) -> User {
+    fn create_user(&self, user_name: String) -> User {
         User { user_name, credentials: Box::new(PostgresCredentials {}) }
     }
 }
@@ -104,7 +106,9 @@ mod tests {
     fn should_add_user() {
         let connection = &get_test_db_connection();
 
-        let user = PostgresUserFactory::create_user(String::from("first_capsule_user"));
+        let user_factory = PostgresUserFactory;
+
+        let user = user_factory.create_user(String::from("first_capsule_user"));
 
         let repository: Box<dyn UserRepository> = Box::new(ProgressUserRepository { connection });
 
@@ -124,7 +128,9 @@ mod tests {
     fn should_find_user_by_user_name() {
         let connection = &get_test_db_connection();
 
-        let user = PostgresUserFactory::create_user(String::from("first_capsule_user"));
+        let user_factory = PostgresUserFactory;
+
+        let user = user_factory.create_user(String::from("first_capsule_user"));
 
         let repository: Box<dyn UserRepository> = Box::new(ProgressUserRepository { connection });
 

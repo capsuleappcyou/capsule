@@ -41,7 +41,7 @@ impl User {
 }
 
 pub trait UserFactory {
-    fn create_user(user_name: String) -> User;
+    fn create_user(&self, user_name: String) -> User;
 }
 
 #[cfg(test)]
@@ -74,7 +74,7 @@ mod tests {
     struct TestUserFactory;
 
     impl UserFactory for TestUserFactory {
-        fn create_user(user_name: String) -> User {
+        fn create_user(&self, user_name: String) -> User {
             let credentials = Box::new(FakeCredentials::new());
 
             User { user_name, credentials }
@@ -95,14 +95,18 @@ mod tests {
 
     #[test]
     fn should_create_user() {
-        let user = TestUserFactory::create_user(String::from("test"));
+        let user_factory = TestUserFactory;
+
+        let user = user_factory.create_user(String::from("test"));
 
         assert_eq!(user.user_name, String::from("test"))
     }
 
     #[test]
     fn should_verify_password_given_correct_credential() {
-        let mut user = TestUserFactory::create_user(String::from("test"));
+        let user_factory = TestUserFactory;
+
+        let mut user = user_factory.create_user(String::from("test"));
 
         let password = Box::new(PwdCredential { plaintext: String::from("password") });
         user.add_credential(password);
@@ -115,7 +119,9 @@ mod tests {
 
     #[test]
     fn should_verify_password_given_incorrect_credential() {
-        let mut user = TestUserFactory::create_user(String::from("test"));
+        let user_factory = TestUserFactory;
+
+        let mut user = user_factory.create_user(String::from("test"));
 
         let password = Box::new(PwdCredential { plaintext: String::from("password") });
         user.add_credential(password);
@@ -128,7 +134,9 @@ mod tests {
 
     #[test]
     fn should_verify_password_given_unsupported_credential() {
-        let mut user = TestUserFactory::create_user(String::from("test"));
+        let user_factory = TestUserFactory;
+
+        let mut user = user_factory.create_user(String::from("test"));
 
         let password = Box::new(PwdCredential { plaintext: String::from("password") });
         user.add_credential(password);
