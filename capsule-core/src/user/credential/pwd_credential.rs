@@ -11,11 +11,22 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+use crypto::digest::Digest;
+use crypto::md5::Md5;
+use rand::Rng;
+use serde::{Deserialize, Serialize};
+
 use crate::user::credential::{Credential, CredentialError};
 
 #[derive(Debug, PartialEq)]
 pub struct PwdCredential {
     pub plaintext: String,
+}
+
+#[derive(Serialize, Deserialize)]
+pub(crate) struct Password {
+    salt: u32,
+    digest: String,
 }
 
 impl Credential for PwdCredential {
@@ -32,6 +43,24 @@ impl Credential for PwdCredential {
 
     fn name(&self) -> String {
         String::from("password")
+    }
+}
+
+impl PwdCredential {
+    pub(crate) fn gen_password(&self) -> Password {
+        let mut hasher = Md5::new();
+        let mut rng = rand::thread_rng();
+
+        let salt: u32 = rng.gen();
+        let plaintext = self.plaintext.clone();
+
+        let salt_pwd = format!("{plaintext}{salt}");
+
+        hasher.input_str(&salt_pwd);
+
+        let digest = hasher.result_str();
+
+        Password { salt, digest }
     }
 }
 
@@ -58,5 +87,15 @@ mod tests {
         let result = pwd.verify(&input_pwd);
 
         assert_eq!(result.is_ok(), false);
+    }
+
+    #[test]
+    fn should_generate_password() {
+        let pwd = PwdCredential { plaintext: "password".to_string() };
+
+        let password = pwd.gen_password();
+
+        assert_ne!(password.salt, 0);
+        assert_ne!(password.digest.len(), 0);
     }
 }

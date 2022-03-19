@@ -13,11 +13,7 @@
 // limitations under the License.
 use std::time::SystemTime;
 
-use crypto::digest::Digest;
-use crypto::md5::Md5;
 use diesel::{PgConnection, RunQueryDsl};
-use rand::Rng;
-use serde::{Deserialize, Serialize};
 
 use crate::PersistenceError;
 use crate::user::credential::Credential;
@@ -31,18 +27,19 @@ pub(crate) struct PostgresCredentials<'a> {
     pub user_name: String,
 }
 
-#[derive(Serialize, Deserialize)]
-struct Password {
-    salt: u32,
-    digest: String,
-}
-
 impl<'a> Credentials for PostgresCredentials<'a> {
-    fn add(&mut self, credential: Box<dyn Credential>) -> Result<(), PersistenceError> {
-        let input_credential = credential.downcast_ref::<PwdCredential>();
+    fn add(&mut self, input_credential: Box<dyn Credential>) -> Result<(), PersistenceError> {
+        let credential = input_credential.downcast_ref::<PwdCredential>();
 
-        if let Some(p) = input_credential {
-            let new_credential = get_password_credential(self.user_name.clone(), credential.name().clone(), &p.plaintext);
+        if let Some(c) = credential {
+            let password = c.gen_password();
+
+            let new_credential = NewCapsuleUserCredential {
+                user_name: self.user_name.clone(),
+                credential_name: c.name(),
+                flat_data: serde_json::to_string(&password).unwrap(),
+                create_at: SystemTime::now(),
+            };
 
             let result = diesel::insert_into(capsule_user_credentials::table)
                 .values(&new_credential)
@@ -59,29 +56,6 @@ impl<'a> Credentials for PostgresCredentials<'a> {
 
     fn get_credential_by_credential_name(&self, _name: &str) -> Option<&Box<dyn Credential>> {
         None
-    }
-}
-
-fn get_password_credential(user_name: String, new_credential_name: String, plaintext: &String) -> NewCapsuleUserCredential {
-    let mut hasher = Md5::new();
-
-    hasher.input_str(plaintext.as_str());
-
-    let digest = hasher.result_str();
-    let mut rng = rand::thread_rng();
-
-    let password = Password {
-        salt: rng.gen(),
-        digest,
-    };
-
-    let flat_data = serde_json::to_string(&password).unwrap();
-
-    NewCapsuleUserCredential {
-        user_name,
-        credential_name: new_credential_name,
-        flat_data,
-        create_at: SystemTime::now(),
     }
 }
 
