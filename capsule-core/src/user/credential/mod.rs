@@ -11,7 +11,6 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-use std::{error, fmt};
 use std::fmt::Debug;
 
 use downcast_rs::DowncastSync;
@@ -21,20 +20,9 @@ pub mod pwd_credential;
 #[derive(Debug, Clone)]
 pub struct CredentialError;
 
-impl fmt::Display for CredentialError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "invalid credential.")
-    }
-}
-
-impl error::Error for CredentialError {
-    fn source(&self) -> Option<&(dyn error::Error + 'static)> {
-        None
-    }
-}
-
 pub trait Credential: DowncastSync {
     fn verify(&self, credential: &dyn Credential) -> Result<(), CredentialError>;
+
     fn name(&self) -> String;
 }
 

@@ -1,3 +1,4 @@
+use crate::PersistenceError;
 // Copyright 2022 the original author or authors.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,7 +15,7 @@
 use crate::user::credential::Credential;
 
 pub trait Credentials {
-    fn add(&mut self, credential: Box<dyn Credential>);
+    fn add(&mut self, credential: Box<dyn Credential>) -> Result<(), PersistenceError>;
 
     fn get_credential_by_credential_name(&self, name: &str) -> Option<&Box<dyn Credential>>;
 }

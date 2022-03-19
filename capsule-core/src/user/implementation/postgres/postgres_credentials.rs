@@ -15,6 +15,7 @@ use std::time::SystemTime;
 // limitations under the License.
 use diesel::{PgConnection, RunQueryDsl};
 
+use crate::PersistenceError;
 use crate::user::credential::Credential;
 use crate::user::credentials::Credentials;
 use crate::user::implementation::postgres::models::NewCapsuleUserPasswordCredential;
@@ -25,7 +26,7 @@ pub struct PostgresCredentials<'a> {
 }
 
 impl<'a> Credentials for PostgresCredentials<'a> {
-    fn add(&mut self, _credential: Box<dyn Credential>) {
+    fn add(&mut self, _credential: Box<dyn Credential>) -> Result<(), PersistenceError> {
         let new_credential = NewCapsuleUserPasswordCredential {
             user_name: "test".to_string(),
             hash_value: String::from("dummy"),
@@ -33,10 +34,14 @@ impl<'a> Credentials for PostgresCredentials<'a> {
             create_at: SystemTime::now(),
         };
 
-        diesel::insert_into(capsule_user_password_credentials::table)
+        let result = diesel::insert_into(capsule_user_password_credentials::table)
             .values(&new_credential)
-            .execute(*&self.connection)
-            .unwrap();
+            .execute(*&self.connection);
+
+        match result {
+            Ok(_) => Ok(()),
+            Err(e) => Err(PersistenceError { message: e.to_string() })
+        }
     }
 
     fn get_credential_by_credential_name(&self, _name: &str) -> Option<&Box<dyn Credential>> {
@@ -63,7 +68,9 @@ mod tests {
         let mut credentials = PostgresCredentials { connection };
 
         let pwd_credential = PwdCredential { plaintext: String::from("password") };
-        credentials.add(Box::new(pwd_credential));
+        let result = credentials.add(Box::new(pwd_credential));
+
+        assert_eq!(result.is_ok(), true);
 
         let results: Vec<SavedCapsuleUserPasswordCredential> = capsule_user_password_credentials
             .filter(user_name.eq("test"))

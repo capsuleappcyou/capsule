@@ -15,20 +15,21 @@ use std::time::SystemTime;
 
 use diesel::*;
 
+use crate::PersistenceError;
 use crate::user::{User, UserFactory};
 use crate::user::implementation::postgres::models::{NewUser, SavedUser};
 use crate::user::implementation::postgres::postgres_credentials::PostgresCredentials;
 use crate::user::implementation::postgres::schema::capsule_users;
 use crate::user::implementation::postgres::schema::capsule_users::dsl::*;
 use crate::user::implementation::postgres::schema::capsule_users::user_name;
-use crate::user::repository::{UserRepository, UserRepositoryError};
+use crate::user::repository::UserRepository;
 
 struct PostgresUserRepository<'a> {
     connection: &'a PgConnection,
 }
 
 impl<'a> UserRepository for PostgresUserRepository<'a> {
-    fn add(&self, user: &User) -> Result<(), UserRepositoryError> {
+    fn add(&self, user: &User) -> Result<(), PersistenceError> {
         let new_user = NewUser {
             user_name: user.user_name.clone(),
             create_at: SystemTime::now(),
@@ -40,7 +41,7 @@ impl<'a> UserRepository for PostgresUserRepository<'a> {
 
         match insert_result {
             Ok(_) => Ok(()),
-            Err(e) => Err(UserRepositoryError { message: e.to_string() })
+            Err(e) => Err(PersistenceError { message: e.to_string() })
         }
     }
 
@@ -51,7 +52,10 @@ impl<'a> UserRepository for PostgresUserRepository<'a> {
 
         match query_result {
             Ok(saved_user) => {
-                let user = User { user_name: saved_user.user_name, credentials: Box::new(PostgresCredentials { connection: self.connection }) };
+                let user = User {
+                    user_name: saved_user.user_name,
+                    credentials: Box::new(PostgresCredentials { connection: self.connection }),
+                };
 
                 Some(user)
             }

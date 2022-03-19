@@ -27,8 +27,11 @@ pub struct User<'a> {
 }
 
 impl<'a> User<'a> {
-    pub fn add_credential(&mut self, credential: Box<dyn Credential>) {
-        self.credentials.add(credential);
+    pub fn add_credential(&mut self, credential: Box<dyn Credential>) -> Result<(), CredentialError> {
+        match self.credentials.add(credential) {
+            Ok(_) => Ok(()),
+            Err(_) => Err(CredentialError)
+        }
     }
 
     pub fn verify_credential(&self, input_credential: Box<dyn Credential>) -> Result<(), CredentialError> {
@@ -47,6 +50,7 @@ pub trait UserFactory {
 
 #[cfg(test)]
 mod tests {
+    use crate::PersistenceError;
     use crate::user::{User, UserFactory};
     use crate::user::credential::{Credential, CredentialError};
     use crate::user::credential::pwd_credential::PwdCredential;
@@ -63,8 +67,9 @@ mod tests {
     }
 
     impl Credentials for FakeCredentials {
-        fn add(&mut self, credential: Box<dyn Credential>) {
-            self.credentials.push(credential)
+        fn add(&mut self, credential: Box<dyn Credential>) -> Result<(), PersistenceError> {
+            self.credentials.push(credential);
+            Ok(())
         }
 
         fn get_credential_by_credential_name(&self, _name: &str) -> Option<&Box<dyn Credential>> {
@@ -110,7 +115,7 @@ mod tests {
         let mut user = user_factory.create_user(String::from("test"));
 
         let password = Box::new(PwdCredential { plaintext: String::from("password") });
-        user.add_credential(password);
+        let _ = user.add_credential(password);
 
         let input_password = Box::new(PwdCredential { plaintext: String::from("password") });
         let verify_result = user.verify_credential(input_password);
@@ -125,7 +130,7 @@ mod tests {
         let mut user = user_factory.create_user(String::from("test"));
 
         let password = Box::new(PwdCredential { plaintext: String::from("password") });
-        user.add_credential(password);
+        let _ = user.add_credential(password);
 
         let wrong_password = Box::new(PwdCredential { plaintext: String::from("wrong password") });
         let verify_result = user.verify_credential(wrong_password);
@@ -140,7 +145,7 @@ mod tests {
         let mut user = user_factory.create_user(String::from("test"));
 
         let password = Box::new(PwdCredential { plaintext: String::from("password") });
-        user.add_credential(password);
+        let _ = user.add_credential(password);
 
         let unsupported_credential = Box::new(UnSupportedCredential {});
         let verify_result = user.verify_credential(unsupported_credential);
