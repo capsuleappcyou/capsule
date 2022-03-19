@@ -13,8 +13,13 @@
 // limitations under the License.
 use crate::user::User;
 
+#[derive(Debug, Clone)]
+pub struct UserRepositoryError {
+    pub message: String,
+}
+
 pub trait UserRepository {
-    fn add(&self, user: &User);
+    fn add(&self, user: &User) -> Result<(), UserRepositoryError>;
 
     fn find_by_user_name(&self, user_name: &str) -> Option<User>;
 }

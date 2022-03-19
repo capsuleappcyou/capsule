@@ -21,23 +21,27 @@ use crate::user::implementation::postgres::postgres_credentials::PostgresCredent
 use crate::user::implementation::postgres::schema::capsule_users;
 use crate::user::implementation::postgres::schema::capsule_users::dsl::*;
 use crate::user::implementation::postgres::schema::capsule_users::user_name;
-use crate::user::repository::UserRepository;
+use crate::user::repository::{UserRepository, UserRepositoryError};
 
 struct PostgresUserRepository<'a> {
     connection: &'a PgConnection,
 }
 
 impl<'a> UserRepository for PostgresUserRepository<'a> {
-    fn add(&self, user: &User) {
+    fn add(&self, user: &User) -> Result<(), UserRepositoryError> {
         let new_user = NewUser {
             user_name: user.user_name.clone(),
             create_at: SystemTime::now(),
         };
 
-        diesel::insert_into(capsule_users::table)
+        let insert_result = diesel::insert_into(capsule_users::table)
             .values(&new_user)
-            .execute(*&self.connection)
-            .unwrap();
+            .execute(*&self.connection);
+
+        match insert_result {
+            Ok(_) => Ok(()),
+            Err(e) => Err(UserRepositoryError { message: e.to_string() })
+        }
     }
 
     fn find_by_user_name(&self, target_user_name: &str) -> Option<User> {
@@ -85,7 +89,8 @@ mod tests {
 
         let repository: Box<dyn UserRepository> = Box::new(PostgresUserRepository { connection });
 
-        repository.add(&user);
+        let result = repository.add(&user);
+        assert_eq!(result.is_ok(), true);
 
         let results: Vec<SavedUser> = capsule_users
             .filter(user_name.eq("first_capsule_user"))
@@ -107,7 +112,7 @@ mod tests {
 
         let repository: Box<dyn UserRepository> = Box::new(PostgresUserRepository { connection });
 
-        repository.add(&user);
+        let _ = repository.add(&user);
 
         let first_capsule_user = repository.find_by_user_name("first_capsule_user").unwrap();
 
