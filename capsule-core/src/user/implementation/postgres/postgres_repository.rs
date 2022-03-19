@@ -53,8 +53,13 @@ impl<'a> UserRepository for PostgresUserRepository<'a> {
         match query_result {
             Ok(saved_user) => {
                 let user = User {
-                    user_name: saved_user.user_name,
-                    credentials: Box::new(PostgresCredentials { connection: self.connection }),
+                    user_name: saved_user.user_name.clone(),
+                    credentials: Box::new(
+                        PostgresCredentials {
+                            connection: self.connection,
+                            user_name: saved_user.user_name,
+                        }
+                    ),
                 };
 
                 Some(user)
@@ -65,12 +70,20 @@ impl<'a> UserRepository for PostgresUserRepository<'a> {
 }
 
 pub struct PostgresUserFactory<'a> {
-    connection: &'a PgConnection,
+    pub(crate) connection: &'a PgConnection,
 }
 
 impl<'a> UserFactory for PostgresUserFactory<'a> {
     fn create_user(&self, new_user_name: String) -> User {
-        User { user_name: new_user_name, credentials: Box::new(PostgresCredentials { connection: self.connection }) }
+        User {
+            user_name: new_user_name.clone(),
+            credentials: Box::new(
+                PostgresCredentials {
+                    connection: self.connection,
+                    user_name: new_user_name,
+                }
+            )
+        }
     }
 }
 
