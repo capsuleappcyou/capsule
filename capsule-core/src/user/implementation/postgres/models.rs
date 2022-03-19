@@ -13,18 +13,37 @@
 // limitations under the License.
 use std::time::SystemTime;
 
+use super::schema::capsule_user_password_credentials;
 use super::schema::capsule_users;
 
 #[derive(Insertable)]
 #[table_name = "capsule_users"]
-pub struct NewUser<'a> {
-    pub name: &'a str,
+pub struct NewUser {
+    pub user_name: String,
     pub create_at: SystemTime,
 }
 
 #[derive(Queryable)]
 pub struct SavedUser {
     pub id: i32,
-    pub name: String,
+    pub user_name: String,
+    pub create_at: SystemTime,
+}
+
+#[derive(Insertable)]
+#[table_name = "capsule_user_password_credentials"]
+pub struct NewCapsuleUserPasswordCredential {
+    pub user_name: String,
+    pub hash_value: String,
+    pub salt: i32,
+    pub create_at: SystemTime,
+}
+
+#[derive(Queryable)]
+pub struct SavedCapsuleUserPasswordCredential {
+    pub id: i32,
+    pub user_name: String,
+    pub hash_value: String,
+    pub salt: i32,
     pub create_at: SystemTime,
 }

@@ -32,7 +32,7 @@ impl<'a> User<'a> {
     }
 
     pub fn verify_credential(&self, input_credential: Box<dyn Credential>) -> Result<(), CredentialError> {
-        let credential = self.credentials.get_credential_by_name(input_credential.name().as_str());
+        let credential = self.credentials.get_credential_by_credential_name(input_credential.name().as_str());
 
         match credential {
             Some(c) => c.verify(input_credential.deref()),
@@ -67,7 +67,7 @@ mod tests {
             self.credentials.push(credential)
         }
 
-        fn get_credential_by_name(&self, _name: &str) -> Option<&Box<dyn Credential>> {
+        fn get_credential_by_credential_name(&self, _name: &str) -> Option<&Box<dyn Credential>> {
             Some(self.credentials.get(0).unwrap())
         }
     }

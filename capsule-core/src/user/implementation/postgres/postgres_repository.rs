@@ -20,7 +20,7 @@ use crate::user::implementation::postgres::models::{NewUser, SavedUser};
 use crate::user::implementation::postgres::postgres_credentials::PostgresCredentials;
 use crate::user::implementation::postgres::schema::capsule_users;
 use crate::user::implementation::postgres::schema::capsule_users::dsl::*;
-use crate::user::implementation::postgres::schema::capsule_users::name;
+use crate::user::implementation::postgres::schema::capsule_users::user_name;
 use crate::user::repository::UserRepository;
 
 struct PostgresUserRepository<'a> {
@@ -30,7 +30,7 @@ struct PostgresUserRepository<'a> {
 impl<'a> UserRepository for PostgresUserRepository<'a> {
     fn add(&self, user: &User) {
         let new_user = NewUser {
-            name: &user.user_name.as_str(),
+            user_name: user.user_name.clone(),
             create_at: SystemTime::now(),
         };
 
@@ -40,14 +40,14 @@ impl<'a> UserRepository for PostgresUserRepository<'a> {
             .unwrap();
     }
 
-    fn find_by_user_name(&self, user_name: &str) -> Option<User> {
+    fn find_by_user_name(&self, target_user_name: &str) -> Option<User> {
         let query_result = capsule_users
-            .filter(name.eq(user_name))
+            .filter(user_name.eq(&target_user_name.to_string()))
             .first::<SavedUser>(*&self.connection);
 
         match query_result {
             Ok(saved_user) => {
-                let user = User { user_name: saved_user.name, credentials: Box::new(PostgresCredentials { connection: self.connection }) };
+                let user = User { user_name: saved_user.user_name, credentials: Box::new(PostgresCredentials { connection: self.connection }) };
 
                 Some(user)
             }
@@ -61,37 +61,19 @@ pub struct PostgresUserFactory<'a> {
 }
 
 impl<'a> UserFactory for PostgresUserFactory<'a> {
-    fn create_user(&self, user_name: String) -> User {
-        User { user_name, credentials: Box::new(PostgresCredentials { connection: self.connection }) }
+    fn create_user(&self, new_user_name: String) -> User {
+        User { user_name: new_user_name, credentials: Box::new(PostgresCredentials { connection: self.connection }) }
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use diesel_migrations::embed_migrations;
-
     use crate::diesel::*;
+    use crate::user::implementation::postgres::get_test_db_connection;
     use crate::user::implementation::postgres::models::SavedUser;
     use crate::user::implementation::postgres::schema::capsule_users::dsl::*;
 
     use super::*;
-
-    embed_migrations!("./migrations/postgres");
-
-    fn get_test_db_connection() -> PgConnection {
-        let connection = establish_connection();
-
-        let _ = connection.begin_test_transaction();
-
-        let _ = embedded_migrations::run_with_output(&connection, &mut std::io::stdout());
-
-        connection
-    }
-
-    fn establish_connection() -> PgConnection {
-        PgConnection::establish("postgres://postgres:123456@localhost/capsule")
-            .expect(&format!("Error connecting to {}", "postgres://postgres:123456@localhost/capsule"))
-    }
 
     #[test]
     fn should_add_user() {
@@ -106,13 +88,13 @@ mod tests {
         repository.add(&user);
 
         let results: Vec<SavedUser> = capsule_users
-            .filter(name.eq("first_capsule_user"))
+            .filter(user_name.eq("first_capsule_user"))
             .limit(1)
             .load::<SavedUser>(connection)
             .expect("Error loading users");
 
         let first_capsule_user: &SavedUser = results.get(0).unwrap();
-        assert_eq!(first_capsule_user.name, "first_capsule_user");
+        assert_eq!(first_capsule_user.user_name, "first_capsule_user");
     }
 
     #[test]
