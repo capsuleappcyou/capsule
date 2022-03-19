@@ -1,1 +1,1 @@
-DROP TABLE capsule_user_password_credentials;
+DROP TABLE capsule_user_credentials;

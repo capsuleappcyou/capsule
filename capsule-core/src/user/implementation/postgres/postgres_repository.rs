@@ -82,7 +82,7 @@ impl<'a> UserFactory for PostgresUserFactory<'a> {
                     connection: self.connection,
                     user_name: new_user_name,
                 }
-            )
+            ),
         }
     }
 }

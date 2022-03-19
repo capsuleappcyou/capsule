@@ -1,9 +1,9 @@
 table! {
-    capsule_user_password_credentials (id) {
+    capsule_user_credentials (id) {
         id -> Int4,
         user_name -> Varchar,
-        hash_value -> Text,
-        salt -> Int4,
+        credential_name -> Varchar,
+        flat_data -> Text,
         create_at -> Timestamp,
     }
 }
@@ -17,6 +17,6 @@ table! {
 }
 
 allow_tables_to_appear_in_same_query!(
-    capsule_user_password_credentials,
+    capsule_user_credentials,
     capsule_users,
 );
