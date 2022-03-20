@@ -13,14 +13,16 @@
 // limitations under the License.
 use std::time::SystemTime;
 
-use diesel::{PgConnection, RunQueryDsl};
+use diesel::{ExpressionMethods, PgConnection, QueryDsl, RunQueryDsl};
 
 use crate::PersistenceError;
 use crate::user::credential::Credential;
-use crate::user::credential::pwd_credential::PlaintextCredential;
+use crate::user::credential::pwd_credential::{Password, PasswordCredential, PlaintextCredential};
 use crate::user::credentials::Credentials;
-use crate::user::implementation::postgres::models::NewCapsuleUserCredential;
+use crate::user::implementation::postgres::models::{NewCapsuleUserCredential, SavedCapsuleUserCredential};
+use crate::user::implementation::postgres::postgres_credentials::capsule_user_credentials::dsl::*;
 use crate::user::implementation::postgres::schema::capsule_user_credentials;
+use crate::user::implementation::postgres::schema::capsule_user_credentials::user_name;
 
 pub(crate) struct PostgresCredentials<'a> {
     pub connection: &'a PgConnection,
@@ -54,8 +56,24 @@ impl<'a> Credentials for PostgresCredentials<'a> {
         Err(PersistenceError { message: "Unsupported credential.".to_string() })
     }
 
-    fn get_credential_by_credential_name(&self, _name: &str) -> Option<Box<dyn Credential>> {
-        None
+    fn get_credential_by_credential_name(&self, target_name: &str) -> Option<Box<dyn Credential>> {
+        match target_name {
+            "password" => {
+                let saved_credential = capsule_user_credentials
+                    .filter(user_name.eq(self.user_name.as_str()))
+                    .filter(credential_name.eq(target_name))
+                    .first::<SavedCapsuleUserCredential>(self.connection);
+
+                match saved_credential {
+                    Ok(c) => {
+                        let password = serde_json::from_str::<Password>(c.flat_data.as_str()).unwrap();
+                        Some(Box::new(PasswordCredential { password }))
+                    }
+                    Err(_) => None
+                }
+            }
+            _ => None
+        }
     }
 }
 
@@ -63,7 +81,7 @@ impl<'a> Credentials for PostgresCredentials<'a> {
 mod tests {
     use diesel::{ExpressionMethods, QueryDsl};
 
-    use crate::user::credential::pwd_credential::PlaintextCredential;
+    use crate::user::credential::pwd_credential::{PasswordCredential, PlaintextCredential};
     use crate::user::implementation::postgres::get_test_db_connection;
     use crate::user::implementation::postgres::models::SavedCapsuleUserCredential;
     use crate::user::implementation::postgres::postgres_credentials::tests::dsl::capsule_user_credentials;
@@ -98,5 +116,55 @@ mod tests {
         assert_eq!(saved_credential.credential_name, String::from("password"));
         assert_eq!(saved_credential.flat_data.len() > 0, true);
         assert_eq!(saved_credential.user_name, String::from("first_capsule_user"));
+    }
+
+    #[test]
+    fn should_get_by_credential_name() {
+        let connection = &get_test_db_connection();
+
+        let mut credentials = PostgresCredentials {
+            connection,
+            user_name: String::from("first_capsule_user"),
+        };
+
+        let pwd_credential = PlaintextCredential { plaintext: String::from("password") };
+        let _ = credentials.add(Box::new(pwd_credential));
+
+        let saved_credential = credentials.get_credential_by_credential_name("password").unwrap();
+        let credential = saved_credential.downcast_ref::<PasswordCredential>().unwrap();
+
+        assert_ne!(credential.password.salt, 0);
+        assert_ne!(credential.password.digest.len(), 0);
+    }
+
+    #[test]
+    fn should_not_found_not_supported_credential() {
+        let connection = &get_test_db_connection();
+
+        let credentials = PostgresCredentials {
+            connection,
+            user_name: String::from("first_capsule_user"),
+        };
+
+        let credential = credentials.get_credential_by_credential_name("not_supported");
+
+        assert_eq!(credential.is_none(), true);
+    }
+
+    #[test]
+    fn should_not_found_not_exists_credential() {
+        let connection = &get_test_db_connection();
+
+        let mut credentials = PostgresCredentials {
+            connection,
+            user_name: String::from("first_capsule_user"),
+        };
+
+        let pwd_credential = PlaintextCredential { plaintext: String::from("password") };
+        let _ = credentials.add(Box::new(pwd_credential));
+
+        let credential = credentials.get_credential_by_credential_name("not_exists");
+
+        assert_eq!(credential.is_none(), true);
     }
 }
