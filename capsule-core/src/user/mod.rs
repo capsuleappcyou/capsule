@@ -117,8 +117,8 @@ mod tests {
         let password = Box::new(PwdCredential { plaintext: String::from("password") });
         let _ = user.add_credential(password);
 
-        let input_password = Box::new(PwdCredential { plaintext: String::from("password") });
-        let verify_result = user.verify_credential(input_password);
+        let correct_password = Box::new(PwdCredential { plaintext: String::from("password") });
+        let verify_result = user.verify_credential(correct_password);
 
         assert_eq!(verify_result.is_ok(), true);
     }
