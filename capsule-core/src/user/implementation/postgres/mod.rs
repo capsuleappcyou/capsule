@@ -48,7 +48,7 @@ pub(crate) fn establish_connection() -> PgConnection {
 }
 
 pub struct PostgresUserFactory<'a> {
-    pub(crate) connection: &'a PgConnection,
+    pub connection: &'a PgConnection,
 }
 
 impl<'a> UserFactory for PostgresUserFactory<'a> {

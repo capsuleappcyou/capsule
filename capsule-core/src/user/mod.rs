@@ -14,12 +14,16 @@
 use std::ops::Deref;
 
 use crate::user::credential::{Credential, CredentialError};
+pub use crate::user::credential::pwd_credential::PlaintextCredential;
 use crate::user::credentials::Credentials;
+pub use crate::user::implementation::postgres::postgres_repository::PostgresUserRepository;
+pub use crate::user::implementation::postgres::PostgresUserFactory;
+pub use crate::user::repository::UserRepository;
 
 pub mod credential;
 pub mod repository;
 pub(crate) mod credentials;
-pub mod implementation;
+pub(crate) mod implementation;
 
 pub struct User<'a> {
     pub user_name: String,

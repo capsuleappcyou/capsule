@@ -24,8 +24,8 @@ use crate::user::implementation::postgres::schema::capsule_users::user_name;
 use crate::user::repository::UserRepository;
 use crate::user::User;
 
-struct PostgresUserRepository<'a> {
-    connection: &'a PgConnection,
+pub struct PostgresUserRepository<'a> {
+    pub connection: &'a PgConnection,
 }
 
 impl<'a> UserRepository for PostgresUserRepository<'a> {
