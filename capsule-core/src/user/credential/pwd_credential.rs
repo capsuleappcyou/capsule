@@ -48,19 +48,25 @@ impl Credential for PwdCredential {
 
 impl PwdCredential {
     pub(crate) fn gen_password(&self) -> Password {
-        let mut hasher = Md5::new();
         let mut rng = rand::thread_rng();
 
         let salt: u32 = rng.gen();
+
+        let digest = self.get_digest(salt);
+
+        Password { salt, digest }
+    }
+
+    pub(crate) fn get_digest(&self, salt: u32) -> String {
+        let mut hasher = Md5::new();
+
         let plaintext = self.plaintext.clone();
 
         let salt_pwd = format!("{plaintext}{salt}");
 
         hasher.input_str(&salt_pwd);
 
-        let digest = hasher.result_str();
-
-        Password { salt, digest }
+        hasher.result_str()
     }
 }
 
@@ -97,5 +103,15 @@ mod tests {
 
         assert_ne!(password.salt, 0);
         assert_ne!(password.digest.len(), 0);
+    }
+
+    #[test]
+    fn should_get_digest_given_salt() {
+        let pwd = PwdCredential { plaintext: "password".to_string() };
+
+        let password = pwd.gen_password();
+        let digest = pwd.get_digest(password.salt);
+
+        assert_eq!(digest, password.digest);
     }
 }
