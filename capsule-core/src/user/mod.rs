@@ -19,7 +19,7 @@ use crate::user::credentials::Credentials;
 pub mod credential;
 pub mod repository;
 pub(crate) mod credentials;
-pub(crate) mod implementation;
+pub mod implementation;
 
 pub struct User<'a> {
     pub user_name: String,

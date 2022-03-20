@@ -16,13 +16,13 @@ use std::time::SystemTime;
 use diesel::*;
 
 use crate::PersistenceError;
-use crate::user::{User, UserFactory};
 use crate::user::implementation::postgres::models::{NewUser, SavedUser};
 use crate::user::implementation::postgres::postgres_credentials::PostgresCredentials;
 use crate::user::implementation::postgres::schema::capsule_users;
 use crate::user::implementation::postgres::schema::capsule_users::dsl::*;
 use crate::user::implementation::postgres::schema::capsule_users::user_name;
 use crate::user::repository::UserRepository;
+use crate::user::User;
 
 struct PostgresUserRepository<'a> {
     connection: &'a PgConnection,
@@ -69,30 +69,13 @@ impl<'a> UserRepository for PostgresUserRepository<'a> {
     }
 }
 
-pub struct PostgresUserFactory<'a> {
-    pub(crate) connection: &'a PgConnection,
-}
-
-impl<'a> UserFactory for PostgresUserFactory<'a> {
-    fn create_user(&self, new_user_name: String) -> User {
-        User {
-            user_name: new_user_name.clone(),
-            credentials: Box::new(
-                PostgresCredentials {
-                    connection: self.connection,
-                    user_name: new_user_name,
-                }
-            ),
-        }
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use crate::diesel::*;
-    use crate::user::implementation::postgres::get_test_db_connection;
+    use crate::user::implementation::postgres::{get_test_db_connection, PostgresUserFactory};
     use crate::user::implementation::postgres::models::SavedUser;
     use crate::user::implementation::postgres::schema::capsule_users::dsl::*;
+    use crate::user::UserFactory;
 
     use super::*;
 
