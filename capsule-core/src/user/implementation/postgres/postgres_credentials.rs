@@ -167,4 +167,23 @@ mod tests {
 
         assert_eq!(credential.is_none(), true);
     }
+
+    #[test]
+    fn should_not_add_duplicate_credential() {
+        let connection = &get_test_db_connection();
+
+        let mut credentials = PostgresCredentials {
+            connection,
+            user_name: String::from("first_capsule_user"),
+        };
+
+        let pwd_credential = PlaintextCredential { plaintext: String::from("password") };
+
+        let _ = credentials.add(Box::new(pwd_credential));
+
+        let duplicated_credential = PlaintextCredential { plaintext: String::from("password") };
+        let result = credentials.add(Box::new(duplicated_credential));
+
+        assert_eq!(result.is_ok(), false);
+    }
 }

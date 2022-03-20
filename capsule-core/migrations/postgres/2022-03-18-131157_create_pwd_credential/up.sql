@@ -6,3 +6,4 @@ CREATE TABLE capsule_user_credentials
     flat_data       TEXT         NOT NULL,
     create_at       timestamp    NOT NULL
 );
+create unique index capsule_user_credentials_user_name_credential_name_uindex on capsule_user_credentials (user_name, credential_name);
