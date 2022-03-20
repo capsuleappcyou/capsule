@@ -17,7 +17,7 @@ use diesel::{PgConnection, RunQueryDsl};
 
 use crate::PersistenceError;
 use crate::user::credential::Credential;
-use crate::user::credential::pwd_credential::PwdCredential;
+use crate::user::credential::pwd_credential::PlaintextCredential;
 use crate::user::credentials::Credentials;
 use crate::user::implementation::postgres::models::NewCapsuleUserCredential;
 use crate::user::implementation::postgres::schema::capsule_user_credentials;
@@ -29,7 +29,7 @@ pub(crate) struct PostgresCredentials<'a> {
 
 impl<'a> Credentials for PostgresCredentials<'a> {
     fn add(&mut self, input_credential: Box<dyn Credential>) -> Result<(), PersistenceError> {
-        let credential = input_credential.downcast_ref::<PwdCredential>();
+        let credential = input_credential.downcast_ref::<PlaintextCredential>();
 
         if let Some(c) = credential {
             let password = c.gen_password();
@@ -54,7 +54,7 @@ impl<'a> Credentials for PostgresCredentials<'a> {
         Err(PersistenceError { message: "Unsupported credential.".to_string() })
     }
 
-    fn get_credential_by_credential_name(&self, _name: &str) -> Option<&Box<dyn Credential>> {
+    fn get_credential_by_credential_name(&self, _name: &str) -> Option<Box<dyn Credential>> {
         None
     }
 }
@@ -63,7 +63,7 @@ impl<'a> Credentials for PostgresCredentials<'a> {
 mod tests {
     use diesel::{ExpressionMethods, QueryDsl};
 
-    use crate::user::credential::pwd_credential::PwdCredential;
+    use crate::user::credential::pwd_credential::PlaintextCredential;
     use crate::user::implementation::postgres::get_test_db_connection;
     use crate::user::implementation::postgres::models::SavedCapsuleUserCredential;
     use crate::user::implementation::postgres::postgres_credentials::tests::dsl::capsule_user_credentials;
@@ -80,7 +80,7 @@ mod tests {
             user_name: String::from("first_capsule_user"),
         };
 
-        let pwd_credential = PwdCredential { plaintext: String::from("password") };
+        let pwd_credential = PlaintextCredential { plaintext: String::from("password") };
         let result = credentials.add(Box::new(pwd_credential));
 
         assert_eq!(result.is_ok(), true);

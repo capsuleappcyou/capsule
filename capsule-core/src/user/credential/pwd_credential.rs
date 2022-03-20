@@ -19,26 +19,45 @@ use serde::{Deserialize, Serialize};
 use crate::user::credential::{Credential, CredentialError};
 
 #[derive(Debug, PartialEq)]
-pub struct PwdCredential {
+pub struct PlaintextCredential {
     pub plaintext: String,
 }
 
 #[derive(Serialize, Deserialize)]
 pub(crate) struct Password {
-    salt: u32,
-    digest: String,
+    pub salt: u32,
+    pub digest: String,
 }
 
-impl Credential for PwdCredential {
-    fn verify(&self, input_credential: &dyn Credential) -> Result<(), CredentialError> {
-        let pwd_credential = input_credential.downcast_ref::<PwdCredential>();
+pub(crate) struct PasswordCredential {
+    pub password: Password,
+}
 
-        match pwd_credential {
-            Some(p) if p.plaintext == self.plaintext => {
-                Ok(())
+impl Credential for PasswordCredential {
+    fn verify(&self, input_credential: &dyn Credential) -> Result<(), CredentialError> {
+        let credential = input_credential.downcast_ref::<PlaintextCredential>();
+
+        if let Some(c) = credential {
+            let digest = c.get_digest(self.password.salt);
+
+            if digest == self.password.digest {
+                return Ok(());
             }
-            _ => Err(CredentialError)
+
+            return Err(CredentialError { message: String::from("incorrect credential.") });
         }
+
+        Err(CredentialError { message: String::from("unsupported credential.") })
+    }
+
+    fn name(&self) -> String {
+        return String::from("password");
+    }
+}
+
+impl Credential for PlaintextCredential {
+    fn verify(&self, _credential: &dyn Credential) -> Result<(), CredentialError> {
+        Err(CredentialError { message: String::from("Can't verify plaintext password.") })
     }
 
     fn name(&self) -> String {
@@ -46,7 +65,7 @@ impl Credential for PwdCredential {
     }
 }
 
-impl PwdCredential {
+impl PlaintextCredential {
     pub(crate) fn gen_password(&self) -> Password {
         let mut rng = rand::thread_rng();
 
@@ -72,13 +91,31 @@ impl PwdCredential {
 
 #[cfg(test)]
 mod tests {
-    use crate::user::credential::Credential;
-    use crate::user::credential::pwd_credential::PwdCredential;
+    use crate::user::credential::{Credential, CredentialError};
+    use crate::user::credential::pwd_credential::{Password, PasswordCredential, PlaintextCredential};
+
+    struct UnSupportedCredential;
+
+    impl Credential for UnSupportedCredential {
+        fn verify(&self, _credential: &dyn Credential) -> Result<(), CredentialError> {
+            Err(CredentialError { message: String::from("unsupported") })
+        }
+
+        fn name(&self) -> String {
+            return String::from("unsupported");
+        }
+    }
 
     #[test]
     fn should_ok_given_correct_password_credential() {
-        let pwd = PwdCredential { plaintext: "password".to_string() };
-        let input_pwd = PwdCredential { plaintext: "password".to_string() };
+        let pwd = PasswordCredential {
+            password: Password {
+                salt: 3129932827,
+                digest: "def98520a0b3cb13c0b96ade9c8a02a2".to_string(),
+            }
+        };
+
+        let input_pwd = PlaintextCredential { plaintext: "password".to_string() };
 
         let result = pwd.verify(&input_pwd);
 
@@ -87,17 +124,53 @@ mod tests {
 
     #[test]
     fn should_error_given_incorrect_password_credential() {
-        let pwd = PwdCredential { plaintext: "password".to_string() };
-        let input_pwd = PwdCredential { plaintext: "wrong".to_string() };
+        let pwd = PasswordCredential {
+            password: Password {
+                salt: 3129932827,
+                digest: "def98520a0b3cb13c0b96ade9c8a02a2".to_string(),
+            }
+        };
+
+        let input_pwd = PlaintextCredential { plaintext: "wrong".to_string() };
 
         let result = pwd.verify(&input_pwd);
 
         assert_eq!(result.is_ok(), false);
+        assert_eq!(result.err().unwrap().message, String::from("incorrect credential."));
+    }
+
+    #[test]
+    fn should_not_verify_both_plaintext_credential() {
+        let pwd = PlaintextCredential { plaintext: "password".to_string() };
+
+        let input_pwd = PlaintextCredential { plaintext: "password".to_string() };
+
+        let result = pwd.verify(&input_pwd);
+
+        assert_eq!(result.is_ok(), false);
+        assert_eq!(result.err().unwrap().message, String::from("Can't verify plaintext password."));
+    }
+
+    #[test]
+    fn should_not_verify_unsupported_credential() {
+        let pwd = PasswordCredential {
+            password: Password {
+                salt: 3129932827,
+                digest: "def98520a0b3cb13c0b96ade9c8a02a2".to_string(),
+            }
+        };
+
+        let input_pwd = UnSupportedCredential;
+
+        let result = pwd.verify(&input_pwd);
+
+        assert_eq!(result.is_ok(), false);
+        assert_eq!(result.err().unwrap().message, String::from("unsupported credential."));
     }
 
     #[test]
     fn should_generate_password() {
-        let pwd = PwdCredential { plaintext: "password".to_string() };
+        let pwd = PlaintextCredential { plaintext: "password".to_string() };
 
         let password = pwd.gen_password();
 
@@ -107,7 +180,7 @@ mod tests {
 
     #[test]
     fn should_get_digest_given_salt() {
-        let pwd = PwdCredential { plaintext: "password".to_string() };
+        let pwd = PlaintextCredential { plaintext: "password".to_string() };
 
         let password = pwd.gen_password();
         let digest = pwd.get_digest(password.salt);

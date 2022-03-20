@@ -18,7 +18,9 @@ use downcast_rs::DowncastSync;
 pub mod pwd_credential;
 
 #[derive(Debug, Clone)]
-pub struct CredentialError;
+pub struct CredentialError {
+    pub message: String,
+}
 
 pub trait Credential: DowncastSync {
     fn verify(&self, credential: &dyn Credential) -> Result<(), CredentialError>;
