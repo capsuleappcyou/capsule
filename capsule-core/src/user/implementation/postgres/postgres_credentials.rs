@@ -138,7 +138,7 @@ mod tests {
     }
 
     #[test]
-    fn should_not_found_not_supported_credential() {
+    fn should_not_found_unsupported_credential() {
         let connection = &get_test_db_connection();
 
         let credentials = PostgresCredentials {
@@ -184,6 +184,6 @@ mod tests {
         let duplicated_credential = PlaintextCredential { plaintext: String::from("password") };
         let result = credentials.add(Box::new(duplicated_credential));
 
-        assert_eq!(result.is_ok(), false);
+         assert_eq!(result.is_ok(), false);
     }
 }
