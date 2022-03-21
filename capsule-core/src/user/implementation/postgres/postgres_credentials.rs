@@ -184,6 +184,6 @@ mod tests {
         let duplicated_credential = PlaintextCredential { plaintext: String::from("password") };
         let result = credentials.add(Box::new(duplicated_credential));
 
-         assert_eq!(result.is_ok(), false);
+        assert_eq!(result.is_ok(), false);
     }
 }

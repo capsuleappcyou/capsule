@@ -1,3 +1,5 @@
+use std::ffi::OsStr;
+use std::fs::create_dir_all;
 // Copyright 2022 the original author or authors.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,6 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 use std::ops::Deref;
+use std::path::{Path, PathBuf};
 
 use crate::user::credential::{Credential, CredentialError};
 pub use crate::user::credential::pwd_credential::PlaintextCredential;
@@ -24,6 +27,10 @@ pub mod credential;
 pub mod repository;
 pub(crate) mod credentials;
 pub(crate) mod implementation;
+
+pub struct CoreErr {
+    message: String,
+}
 
 pub struct User<'a> {
     pub user_name: String,
@@ -46,6 +53,19 @@ impl<'a> User<'a> {
             _ => Err(CredentialError { message: String::from("unsupported credential") })
         }
     }
+
+    pub fn create_home_dir(&self, base_dir_path: &OsStr) -> Result<Box<Path>, CoreErr> {
+        let home_dir = PathBuf::new()
+            .join(Path::new(base_dir_path))
+            .join(Path::new(self.user_name.as_str()));
+
+        let result = create_dir_all(home_dir.as_path());
+
+        match result {
+            Ok(_) => Ok(home_dir.into_boxed_path()),
+            Err(e) => Err(CoreErr { message: e.to_string() })
+        }
+    }
 }
 
 pub trait UserFactory {
@@ -54,6 +74,11 @@ pub trait UserFactory {
 
 #[cfg(test)]
 mod tests {
+    use std::fs::create_dir;
+    use std::path::{Path, PathBuf};
+
+    use tempdir::TempDir;
+
     use crate::PersistenceError;
     use crate::user::{User, UserFactory};
     use crate::user::credential::{Credential, CredentialError};
@@ -162,5 +187,39 @@ mod tests {
         let verify_result = user.verify_credential(unsupported_credential);
 
         assert_eq!(verify_result.is_err(), true);
+    }
+
+    #[test]
+    fn should_create_home_directory() {
+        let user_factory = TestUserFactory;
+
+        let user = user_factory.create_user(String::from("first_capsule_user"));
+
+        let home_base_dir = TempDir::new("capsule_users").unwrap();
+
+        let result = user.create_home_dir(home_base_dir.path().as_os_str());
+
+        assert_eq!(result.is_ok(), true);
+        assert_eq!(result.ok().unwrap().exists(), true);
+    }
+
+    #[test]
+    fn should_not_create_home_directory_multi_time() {
+        let user_factory = TestUserFactory;
+
+        let user = user_factory.create_user(String::from("first_capsule_user"));
+
+        let home_base_dir = TempDir::new("capsule_users").unwrap();
+
+        let _ = user.create_home_dir(home_base_dir.path().as_os_str());
+
+        let test_path = PathBuf::new()
+            .join(Path::new(home_base_dir.path()))
+            .join(Path::new("first_capsule_user"))
+            .join(Path::new("test_path"));
+        let _ = create_dir(test_path.as_path());
+        let _ = user.create_home_dir(home_base_dir.path().as_os_str());
+
+        assert_eq!(test_path.as_path().exists(), true);
     }
 }

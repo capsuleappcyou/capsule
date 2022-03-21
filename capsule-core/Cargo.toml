@@ -16,6 +16,9 @@ name = "capsule-core"
 version = "0.1.0"
 edition = "2021"
 
+[dev-dependencies]
+tempdir = "0.3.7"
+
 [dependencies]
 downcast-rs = "1.2.0"
 #[cfg(test)]
