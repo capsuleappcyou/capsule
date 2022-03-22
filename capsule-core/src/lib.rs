@@ -21,6 +21,7 @@ extern crate diesel_migrations;
 extern crate downcast_rs;
 
 pub mod user;
+pub mod application;
 
 #[derive(Debug, Clone)]
 pub struct PersistenceError {
