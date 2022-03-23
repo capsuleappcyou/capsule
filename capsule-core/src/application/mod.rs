@@ -12,8 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 use std::ffi::OsString;
-use std::fs::create_dir_all;
 use std::path::{Path, PathBuf};
+
+use git2::Repository;
 
 use crate::CoreErr;
 
@@ -25,41 +26,43 @@ struct Application {
 }
 
 impl Application {
-    fn create_directory(&self) -> Result<Box<Path>, CoreErr> {
-        let project_dir = PathBuf::new()
-            .join(Path::new(self.application_directory.as_os_str()))
-            .join(Path::new(self.name.as_str()));
+    fn initialize_git_repository(&self) -> Result<Box<Path>, CoreErr> {
+        let application_dir = self.get_application_dir();
 
-        let result = create_dir_all(project_dir.as_path());
+        let result = Repository::init_bare(application_dir.as_path());
 
         match result {
-            Ok(()) => Ok(project_dir.into_boxed_path()),
+            Ok(_) => Ok(application_dir.into_boxed_path()),
             Err(e) => Err(CoreErr { message: e.to_string() })
         }
+    }
+
+    fn get_application_dir(&self) -> PathBuf {
+        return PathBuf::new()
+            .join(Path::new(self.application_directory.as_os_str()))
+            .join(Path::new(self.name.as_str()));
     }
 }
 
 #[cfg(test)]
 mod tests {
+    use std::path::PathBuf;
+
     use tempdir::TempDir;
 
     use crate::application::Application;
 
     #[test]
-    fn should_create_application_directory() {
+    fn should_initialize_git_repository() {
         let project_base_dir = TempDir::new("").unwrap();
 
         let application = Application { name: "first_application".to_string(), application_directory: project_base_dir.path().as_os_str().to_os_string() };
 
-        let result = application.create_directory();
-
+        let result = application.initialize_git_repository();
         assert_eq!(result.is_ok(), true);
 
         let project_path = result.ok().unwrap();
-        assert_eq!(project_path.exists(), true);
-        assert_eq!(project_path.to_str().unwrap().to_string().ends_with("first_application"), true);
+        assert_eq!(PathBuf::new().join(project_path).join("objects").exists(), true);
     }
-
-    // TODO init application with git and install git hooks
 }
 
