@@ -21,13 +21,13 @@ use crate::CoreErr;
 
 mod repository;
 
-struct Application {
+pub struct Application {
     name: String,
     application_directory: OsString,
 }
 
 impl Application {
-    fn initialize_git_repository(&self) -> Result<Box<Path>, CoreErr> {
+    pub fn initialize_git_repository(&self) -> Result<Box<Path>, CoreErr> {
         let application_dir = self.get_application_dir();
 
         let result = Repository::init_bare(application_dir.as_path());
@@ -38,7 +38,7 @@ impl Application {
         }
     }
 
-    fn install_git_hooks(&self, hooks_dir: &OsString, hook_file_names: &Vec<&str>) -> Result<(), CoreErr> {
+    pub fn install_git_hooks(&self, hooks_dir: &OsString, hook_file_names: &Vec<&str>) -> Result<(), CoreErr> {
         for hook_file in hook_file_names {
             let from = PathBuf::new().join(Path::new(hooks_dir)).join(Path::new(hook_file));
             let to = self.get_application_dir().join(Path::new("hooks")).join(hook_file);
