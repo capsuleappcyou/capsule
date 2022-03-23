@@ -49,12 +49,15 @@ mod tests {
     fn should_create_application_directory() {
         let project_base_dir = TempDir::new("").unwrap();
 
-        let application = Application { name: "first application".to_string(), application_directory: project_base_dir.path().as_os_str().to_os_string() };
+        let application = Application { name: "first_application".to_string(), application_directory: project_base_dir.path().as_os_str().to_os_string() };
 
         let result = application.create_directory();
 
         assert_eq!(result.is_ok(), true);
-        assert_eq!(result.ok().unwrap().exists(), true);
+
+        let project_path = result.ok().unwrap();
+        assert_eq!(project_path.exists(), true);
+        assert_eq!(project_path.to_str().unwrap().to_string().ends_with("first_application"), true);
     }
 
     // TODO init application with git and install git hooks
