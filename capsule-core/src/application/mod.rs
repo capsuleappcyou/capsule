@@ -1,4 +1,17 @@
-use std::ffi::OsStr;
+// Copyright 2022 the original author or authors.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+use std::ffi::OsString;
 use std::fs::create_dir_all;
 use std::path::{Path, PathBuf};
 
@@ -8,12 +21,13 @@ mod repository;
 
 struct Application {
     name: String,
+    application_directory: OsString,
 }
 
 impl Application {
-    fn create_directory(&self, project_base_dir: &OsStr) -> Result<Box<Path>, CoreErr> {
+    fn create_directory(&self) -> Result<Box<Path>, CoreErr> {
         let project_dir = PathBuf::new()
-            .join(Path::new(project_base_dir))
+            .join(Path::new(self.application_directory.as_os_str()))
             .join(Path::new(self.name.as_str()));
 
         let result = create_dir_all(project_dir.as_path());
@@ -33,11 +47,11 @@ mod tests {
 
     #[test]
     fn should_create_application_directory() {
-        let application = Application { name: "first application".to_string() };
-
         let project_base_dir = TempDir::new("").unwrap();
 
-        let result = application.create_directory(project_base_dir.path().as_os_str());
+        let application = Application { name: "first application".to_string(), application_directory: project_base_dir.path().as_os_str().to_os_string() };
+
+        let result = application.create_directory();
 
         assert_eq!(result.is_ok(), true);
         assert_eq!(result.ok().unwrap().exists(), true);
