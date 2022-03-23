@@ -1,5 +1,3 @@
-use std::ffi::OsStr;
-use std::fs::create_dir_all;
 // Copyright 2022 the original author or authors.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,9 +11,12 @@ use std::fs::create_dir_all;
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+use std::ffi::OsStr;
+use std::fs::create_dir_all;
 use std::ops::Deref;
 use std::path::{Path, PathBuf};
 
+use crate::CoreErr;
 use crate::user::credential::{Credential, CredentialError};
 pub use crate::user::credential::pwd_credential::PlaintextCredential;
 use crate::user::credentials::Credentials;
@@ -27,10 +28,6 @@ pub mod credential;
 pub mod repository;
 pub(crate) mod credentials;
 pub(crate) mod implementation;
-
-pub struct CoreErr {
-    message: String,
-}
 
 pub struct User<'a> {
     pub user_name: String,

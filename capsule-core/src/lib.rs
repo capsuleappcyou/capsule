@@ -27,3 +27,8 @@ pub mod application;
 pub struct PersistenceError {
     pub message: String,
 }
+
+#[derive(Debug, Clone)]
+pub struct CoreErr {
+    message: String,
+}
