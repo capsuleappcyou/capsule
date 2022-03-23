@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 use std::ffi::OsString;
+use std::fs::copy;
 use std::path::{Path, PathBuf};
 
 use git2::Repository;
@@ -37,6 +38,21 @@ impl Application {
         }
     }
 
+    fn install_git_hooks(&self, hooks_dir: &OsString, hook_file_names: &Vec<&str>) -> Result<(), CoreErr> {
+        for hook_file in hook_file_names {
+            let from = PathBuf::new().join(Path::new(hooks_dir)).join(Path::new(hook_file));
+            let to = self.get_application_dir().join(Path::new("hooks")).join(hook_file);
+
+            let result = copy(from, to);
+
+            if let Err(e) = result {
+                return Err(CoreErr { message: e.to_string() });
+            }
+        }
+
+        Ok(())
+    }
+
     fn get_application_dir(&self) -> PathBuf {
         return PathBuf::new()
             .join(Path::new(self.application_directory.as_os_str()))
@@ -46,7 +62,9 @@ impl Application {
 
 #[cfg(test)]
 mod tests {
-    use std::path::PathBuf;
+    use std::ffi::OsString;
+    use std::fs::read_to_string;
+    use std::path::{Path, PathBuf};
 
     use tempdir::TempDir;
 
@@ -64,5 +82,22 @@ mod tests {
         let project_path = result.ok().unwrap();
         assert_eq!(PathBuf::new().join(project_path).join("objects").exists(), true);
     }
+
+    #[test]
+    fn should_install_git_hooks_to_application() {
+        let project_base_dir = TempDir::new("").unwrap();
+
+        let application = Application { name: "first_application".to_string(), application_directory: project_base_dir.path().as_os_str().to_os_string() };
+
+        let _ = application.initialize_git_repository();
+
+        let result = application.install_git_hooks(&OsString::from("./_fixture/git_hooks/"), &vec!["TEST_HOOKS"]);
+        assert_eq!(result.is_ok(), true);
+
+        let path = application.get_application_dir().join(Path::new("hooks")).join(Path::new("TEST_HOOKS"));
+        assert_eq!(read_to_string(path).unwrap(), "this is a test hook file.")
+    }
+
+    //TODO can't install git git_hooks if repository dose not initialization
 }
 
