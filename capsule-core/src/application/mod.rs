@@ -98,6 +98,14 @@ mod tests {
         assert_eq!(read_to_string(path).unwrap(), "this is a test hook file.")
     }
 
-    //TODO can't install git git_hooks if repository dose not initialization
+    #[test]
+    fn should_error_when_install_git_hooks_to_application_if_application_not_initialize() {
+        let project_base_dir = TempDir::new("").unwrap();
+
+        let application = Application { name: "first_application".to_string(), application_directory: project_base_dir.path().as_os_str().to_os_string() };
+
+        let result = application.install_git_hooks(&OsString::from("./_fixture/git_hooks/"), &vec!["TEST_HOOKS"]);
+        assert_eq!(result.is_ok(), false);
+    }
 }
 
