@@ -99,7 +99,7 @@ mod tests {
     }
 
     #[test]
-    fn should_error_when_install_git_hooks_to_application_if_application_not_initialize() {
+    fn should_error_when_install_git_hooks_to_application_if_application_not_initialized() {
         let project_base_dir = TempDir::new("").unwrap();
 
         let application = Application { name: "first_application".to_string(), application_directory: project_base_dir.path().as_os_str().to_os_string() };
