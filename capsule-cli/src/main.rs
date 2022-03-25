@@ -1,3 +1,5 @@
+use std::fmt::format;
+
 // Copyright 2022 the original author or authors.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -11,25 +13,38 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-use clap::Parser;
+use clap::{Parser, Subcommand};
+
+use capsule::{CommandError, create_application};
 
 #[derive(Parser)]
-struct Args {
-    #[clap(short, long)]
-    name: String,
-
-    #[clap(short, long, default_value_t = 1)]
-    count: u8,
+#[clap(name = "capsule")]
+#[clap(about = "CLI to interact with Capsule", long_about = None)]
+#[clap(version = "1.0")]
+struct Cli {
+    #[clap(subcommand)]
+    pub command: Commands,
 }
 
-// capsule create an-app
-// capsule list
-//    an-app
-// capsule
-fn main() {
-    let args = Args::parse();
+#[derive(Subcommand)]
+enum Commands {
+    /// create application
+    create,
+    /// manage applications
+    apps,
+    /// manage capsules
+    ps,
+}
 
-    for _ in 0..args.count {
-        println!("Hello {}!", args.name)
+fn main() {
+    let args: Cli = Cli::parse();
+
+    let result = match &args.command {
+        Commands::create => create_application::handle(),
+        _ => Err(CommandError { message: format!(" is ") }),
+    };
+
+    if let Err(CommandError { message }) = result {
+        println!("{}", message)
     }
 }
