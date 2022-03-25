@@ -11,7 +11,9 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-pub mod create_application;
+pub mod cmd_create_application;
+pub mod cmd_apps;
+pub mod cmd_ps;
 
 pub struct CommandError {
     pub message: String,

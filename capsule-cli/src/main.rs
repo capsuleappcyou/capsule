@@ -11,10 +11,9 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-use std::fmt::format;
 use clap::{Parser, Subcommand};
 
-use capsule::{CommandError, create_application};
+use capsule::{cmd_apps, cmd_create_application, cmd_ps, CommandError};
 
 #[derive(Parser)]
 #[clap(name = "capsule")]
@@ -28,19 +27,20 @@ struct Cli {
 #[derive(Subcommand)]
 enum Commands {
     /// create application
-    create,
+    Create,
     /// manage applications
-    apps,
+    Apps,
     /// manage capsules
-    ps,
+    Ps,
 }
 
 fn main() {
     let args: Cli = Cli::parse();
 
     let result = match &args.command {
-        Commands::create => create_application::handle(),
-        _ => Err(CommandError { message: format!(" is ") }),
+        Commands::Create => cmd_create_application::handle(),
+        Commands::Apps => cmd_apps::handle(),
+        Commands::Ps => cmd_ps::handle(),
     };
 
     if let Err(CommandError { message }) = result {
