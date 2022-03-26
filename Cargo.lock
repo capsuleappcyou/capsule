@@ -307,6 +307,8 @@ name = "capsule"
 version = "0.1.0"
 dependencies = [
  "clap",
+ "git2",
+ "tempdir",
 ]
 
 [[package]]

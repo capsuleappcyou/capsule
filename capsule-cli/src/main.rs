@@ -37,13 +37,13 @@ enum Commands {
 fn main() {
     let args: Cli = Cli::parse();
 
-    let result = match &args.command {
-        Commands::Create => cmd_create_application::handle(),
-        Commands::Apps => cmd_apps::handle(),
-        Commands::Ps => cmd_ps::handle(),
-    };
-
-    if let Err(CommandError { message }) = result {
-        println!("{}", message)
-    }
+    // let result = match &args.command {
+    //     Commands::Create => cmd_create_application::handle(),
+    //     Commands::Apps => cmd_apps::handle(),
+    //     Commands::Ps => cmd_ps::handle(),
+    // };
+    //
+    // if let Err(CommandError { message }) = result {
+    //     println!("{}", message)
+    // }
 }

@@ -16,5 +16,9 @@ name = "capsule"
 version = "0.1.0"
 edition = "2021"
 
+[dev-dependencies]
+tempdir = "0.3.7"
+
 [dependencies]
 clap = { version = "3.1.6", features = ["derive"] }
+git2 = "0.14.2"
