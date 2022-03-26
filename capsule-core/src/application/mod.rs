@@ -38,10 +38,10 @@ impl Application {
         }
     }
 
-    pub fn install_git_hooks(&self, hooks_dir: &OsString, hook_file_names: &Vec<&str>) -> Result<(), CoreErr> {
+    pub fn install_git_hooks<P: AsRef<Path>>(&self, hooks_dir: P, hook_file_names: &Vec<&str>) -> Result<(), CoreErr> {
         for hook_file in hook_file_names {
-            let from = PathBuf::new().join(Path::new(hooks_dir)).join(Path::new(hook_file));
-            let to = self.get_application_dir().join(Path::new("hooks")).join(hook_file);
+            let from = PathBuf::new().join(&hooks_dir).join(hook_file);
+            let to = self.get_application_dir().join("hooks").join(hook_file);
 
             let result = copy(from, to);
 
@@ -55,14 +55,13 @@ impl Application {
 
     fn get_application_dir(&self) -> PathBuf {
         return PathBuf::new()
-            .join(Path::new(self.application_directory.as_os_str()))
-            .join(Path::new(self.name.as_str()));
+            .join(self.application_directory.as_os_str())
+            .join(self.name.as_str());
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use std::ffi::OsString;
     use std::fs::read_to_string;
     use std::path::{Path, PathBuf};
 
@@ -91,7 +90,7 @@ mod tests {
 
         let _ = application.initialize_git_repository();
 
-        let result = application.install_git_hooks(&OsString::from("./_fixture/git_hooks/"), &vec!["TEST_HOOKS"]);
+        let result = application.install_git_hooks("./_fixture/git_hooks/", &vec!["TEST_HOOKS"]);
         assert_eq!(result.is_ok(), true);
 
         let path = application.get_application_dir().join(Path::new("hooks")).join(Path::new("TEST_HOOKS"));
@@ -104,7 +103,7 @@ mod tests {
 
         let application = Application { name: "first_application".to_string(), application_directory: project_base_dir.path().as_os_str().to_os_string() };
 
-        let result = application.install_git_hooks(&OsString::from("./_fixture/git_hooks/"), &vec!["TEST_HOOKS"]);
+        let result = application.install_git_hooks("./_fixture/git_hooks/", &vec!["TEST_HOOKS"]);
         assert_eq!(result.is_ok(), false);
     }
 }
