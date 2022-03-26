@@ -50,9 +50,9 @@ impl<'a> User<'a> {
         }
     }
 
-    pub fn create_home_dir<P: AsRef<Path>>(&self, base_dir_path: P) -> Result<Box<Path>, CoreErr> {
+    pub fn create_home_dir<P: AsRef<Path>>(&self, base_dir: P) -> Result<Box<Path>, CoreErr> {
         let home_dir = PathBuf::new()
-            .join(base_dir_path)
+            .join(base_dir)
             .join(self.user_name.as_str());
 
         let result = create_dir_all(&home_dir);
