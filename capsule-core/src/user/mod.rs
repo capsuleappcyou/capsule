@@ -11,7 +11,6 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-use std::ffi::OsStr;
 use std::fs::create_dir_all;
 use std::ops::Deref;
 use std::path::{Path, PathBuf};
@@ -51,12 +50,12 @@ impl<'a> User<'a> {
         }
     }
 
-    pub fn create_home_dir(&self, base_dir_path: &OsStr) -> Result<Box<Path>, CoreErr> {
+    pub fn create_home_dir<P: AsRef<Path>>(&self, base_dir_path: P) -> Result<Box<Path>, CoreErr> {
         let home_dir = PathBuf::new()
-            .join(Path::new(base_dir_path))
-            .join(Path::new(self.user_name.as_str()));
+            .join(base_dir_path)
+            .join(self.user_name.as_str());
 
-        let result = create_dir_all(home_dir.as_path());
+        let result = create_dir_all(&home_dir);
 
         match result {
             Ok(_) => Ok(home_dir.into_boxed_path()),
@@ -194,7 +193,7 @@ mod tests {
 
         let home_base_dir = TempDir::new("capsule_users").unwrap();
 
-        let result = user.create_home_dir(home_base_dir.path().as_os_str());
+        let result = user.create_home_dir(home_base_dir.path());
 
         assert_eq!(result.is_ok(), true);
         assert_eq!(result.ok().unwrap().exists(), true);
