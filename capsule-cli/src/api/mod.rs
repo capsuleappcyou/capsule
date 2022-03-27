@@ -1,3 +1,5 @@
+use serde::{Deserialize, Serialize};
+
 // Copyright 2022 the original author or authors.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -11,12 +13,17 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-pub mod cmd_create_application;
-pub mod cmd_apps;
-pub mod cmd_ps;
-pub mod api;
+pub mod http;
 
-pub struct CommandError {
+pub struct ApiError {
     pub message: String,
 }
 
+#[derive(Serialize, Deserialize)]
+pub struct ApplicationCreateResponse {
+    name: String,
+}
+
+pub trait CapsuleApi {
+    fn create_application(&self, name: Option<String>) -> Result<ApplicationCreateResponse, ApiError>;
+}
