@@ -1,5 +1,3 @@
-use std::time::Duration;
-
 // Copyright 2022 the original author or authors.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,6 +11,7 @@ use std::time::Duration;
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+use std::time::Duration;
 use async_std::prelude::FutureExt;
 use isahc::http::{Error, StatusCode, Uri};
 use isahc::prelude::*;
