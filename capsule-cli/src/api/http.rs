@@ -1,3 +1,5 @@
+use std::time::Duration;
+
 // Copyright 2022 the original author or authors.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,6 +24,7 @@ use crate::api::{ApiError, ApplicationCreateResponse, CapsuleApi};
 
 pub struct HttpCapsuleApi {
     uri: String,
+    timeout: Duration,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -52,18 +55,27 @@ impl CapsuleApi for HttpCapsuleApi {
         let base_uri = &self.uri;
         let uri_str = format!("{base_uri}/applications");
 
-        let response = Request::post(uri_str.as_str())
+        let mut response = Request::post(uri_str.as_str())
             .header("content-type", "application/json")
+            .timeout(self.timeout)
             .body(serde_json::to_vec(&CreateApplicationRequest { name })?)?
-            .send()?
-            .json::<ApplicationCreateResponse>()?;
+            .send()?;
 
-        Ok(ApplicationCreateResponse { name: response.name })
+        if response.status() != StatusCode::CREATED {
+            let status_code = response.status().as_u16();
+            return Err(ApiError { message: format!("The server response status {status_code}.") });
+        }
+
+        let api_response = response.json::<ApplicationCreateResponse>()?;
+
+        Ok(ApplicationCreateResponse { name: api_response.name })
     }
 }
 
 #[cfg(test)]
 mod tests {
+    use std::time::Duration;
+
     use wiremock::{Mock, MockServer, ResponseTemplate};
     use wiremock::matchers::{body_json, method, path};
 
@@ -84,12 +96,48 @@ mod tests {
             .mount(&mock_server)
             .await;
 
-        let api = HttpCapsuleApi { uri: mock_server.uri() };
+        let api = HttpCapsuleApi { uri: mock_server.uri(), timeout: Duration::from_secs(5) };
         let result = api.create_application(Some("first_capsule_application".to_string()));
 
         assert_eq!(result.is_ok(), true);
         assert_eq!(result.ok().unwrap().name, "first_capsule_application");
     }
 
-    //TODO server error
+    #[async_std::test]
+    async fn should_return_error_if_server_response_500() {
+        let mock_server = MockServer::start().await;
+
+        Mock::given(method("POST"))
+            .and(path("/applications"))
+            .respond_with(ResponseTemplate::new(500)
+                .set_body_json(ApplicationCreateResponse { name: "first_capsule_application".to_string() }))
+            .mount(&mock_server)
+            .await;
+
+        let api = HttpCapsuleApi { uri: mock_server.uri(), timeout: Duration::from_secs(5) };
+        let result = api.create_application(Some("first_capsule_application".to_string()));
+
+        assert_eq!(result.is_ok(), false);
+        assert_eq!(result.err().unwrap().message, "The server response status 500.");
+    }
+
+    #[async_std::test]
+    async fn should_return_error_if_server_time_out() {
+        let mock_server = MockServer::start().await;
+
+        Mock::given(method("POST"))
+            .and(path("/applications"))
+            .and(body_json(CreateApplicationRequest { name: Some("first_capsule_application".to_string()) }))
+            .respond_with(ResponseTemplate::new(201)
+                .set_delay(Duration::from_secs(60))
+                .set_body_json(ApplicationCreateResponse { name: "first_capsule_application".to_string() }))
+            .mount(&mock_server)
+            .await;
+
+        let api = HttpCapsuleApi { uri: mock_server.uri(), timeout: Duration::from_secs(1) };
+        let result = api.create_application(Some("first_capsule_application".to_string()));
+
+        assert_eq!(result.is_ok(), false);
+        assert_eq!(result.err().unwrap().message, "request or operation took longer than the configured timeout time");
+    }
 }
