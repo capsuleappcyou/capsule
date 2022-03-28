@@ -16,7 +16,7 @@ use std::ops::Deref;
 use std::path::{Path, PathBuf};
 
 use crate::CoreError;
-use crate::user::credential::{Credential, CredentialError};
+use crate::user::credential::Credential;
 pub use crate::user::credential::pwd_credential::PlaintextCredential;
 use crate::user::credentials::Credentials;
 pub use crate::user::implementation::postgres::postgres_repository::PostgresUserRepository;
@@ -34,19 +34,19 @@ pub struct User<'a> {
 }
 
 impl<'a> User<'a> {
-    pub fn add_credential(&mut self, credential: Box<dyn Credential>) -> Result<(), CredentialError> {
+    pub fn add_credential(&mut self, credential: Box<dyn Credential>) -> Result<(), CoreError> {
         match self.credentials.add(credential) {
             Ok(_) => Ok(()),
-            Err(e) => Err(CredentialError { message: e.message })
+            Err(e) => Err(CoreError { message: e.message })
         }
     }
 
-    pub fn verify_credential(&self, input_credential: Box<dyn Credential>) -> Result<(), CredentialError> {
+    pub fn verify_credential(&self, input_credential: Box<dyn Credential>) -> Result<(), CoreError> {
         let credential = self.credentials.get_credential_by_credential_name(input_credential.name().as_str());
 
         match credential {
             Some(c) => c.verify(input_credential.deref()),
-            _ => Err(CredentialError { message: String::from("unsupported credential") })
+            _ => Err(CoreError { message: String::from("unsupported credential") })
         }
     }
 
@@ -77,7 +77,7 @@ mod tests {
 
     use crate::CoreError;
     use crate::user::{User, UserFactory};
-    use crate::user::credential::{Credential, CredentialError};
+    use crate::user::credential::Credential;
     use crate::user::credential::pwd_credential::{Password, PasswordCredential, PlaintextCredential};
     use crate::user::credentials::Credentials;
 
@@ -122,7 +122,7 @@ mod tests {
     struct UnSupportedCredential;
 
     impl Credential for UnSupportedCredential {
-        fn verify(&self, _credential: &dyn Credential) -> Result<(), CredentialError> {
+        fn verify(&self, _credential: &dyn Credential) -> Result<(), CoreError> {
             Ok(())
         }
 

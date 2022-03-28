@@ -15,15 +15,12 @@ use std::fmt::Debug;
 
 use downcast_rs::DowncastSync;
 
+use crate::CoreError;
+
 pub mod pwd_credential;
 
-#[derive(Debug, Clone)]
-pub struct CredentialError {
-    pub message: String,
-}
-
 pub trait Credential: DowncastSync {
-    fn verify(&self, credential: &dyn Credential) -> Result<(), CredentialError>;
+    fn verify(&self, credential: &dyn Credential) -> Result<(), CoreError>;
 
     fn name(&self) -> String;
 }

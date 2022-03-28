@@ -16,7 +16,7 @@ use crypto::md5::Md5;
 use rand::Rng;
 use serde::{Deserialize, Serialize};
 
-use crate::user::credential::{Credential, CredentialError};
+use crate::user::credential::{Credential, CoreError};
 
 #[derive(Debug, PartialEq)]
 pub struct PlaintextCredential {
@@ -34,7 +34,7 @@ pub(crate) struct PasswordCredential {
 }
 
 impl Credential for PasswordCredential {
-    fn verify(&self, input_credential: &dyn Credential) -> Result<(), CredentialError> {
+    fn verify(&self, input_credential: &dyn Credential) -> Result<(), CoreError> {
         let credential = input_credential.downcast_ref::<PlaintextCredential>();
 
         if let Some(c) = credential {
@@ -44,10 +44,10 @@ impl Credential for PasswordCredential {
                 return Ok(());
             }
 
-            return Err(CredentialError { message: String::from("incorrect credential.") });
+            return Err(CoreError { message: String::from("incorrect credential.") });
         }
 
-        Err(CredentialError { message: String::from("unsupported credential.") })
+        Err(CoreError { message: String::from("unsupported credential.") })
     }
 
     fn name(&self) -> String {
@@ -56,8 +56,8 @@ impl Credential for PasswordCredential {
 }
 
 impl Credential for PlaintextCredential {
-    fn verify(&self, _credential: &dyn Credential) -> Result<(), CredentialError> {
-        Err(CredentialError { message: String::from("Can't verify plaintext password.") })
+    fn verify(&self, _credential: &dyn Credential) -> Result<(), CoreError> {
+        Err(CoreError { message: String::from("Can't verify plaintext password.") })
     }
 
     fn name(&self) -> String {
@@ -91,14 +91,14 @@ impl PlaintextCredential {
 
 #[cfg(test)]
 mod tests {
-    use crate::user::credential::{Credential, CredentialError};
+    use crate::user::credential::{Credential, CoreError};
     use crate::user::credential::pwd_credential::{Password, PasswordCredential, PlaintextCredential};
 
     struct UnSupportedCredential;
 
     impl Credential for UnSupportedCredential {
-        fn verify(&self, _credential: &dyn Credential) -> Result<(), CredentialError> {
-            Err(CredentialError { message: String::from("unsupported") })
+        fn verify(&self, _credential: &dyn Credential) -> Result<(), CoreError> {
+            Err(CoreError { message: String::from("unsupported") })
         }
 
         fn name(&self) -> String {
