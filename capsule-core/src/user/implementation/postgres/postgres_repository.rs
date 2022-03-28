@@ -14,8 +14,8 @@
 use std::time::SystemTime;
 
 use diesel::*;
+use crate::CoreError;
 
-use crate::PersistenceError;
 use crate::user::implementation::postgres::models::{NewUser, SavedUser};
 use crate::user::implementation::postgres::postgres_credentials::PostgresCredentials;
 use crate::user::implementation::postgres::schema::capsule_users;
@@ -29,7 +29,7 @@ pub struct PostgresUserRepository<'a> {
 }
 
 impl<'a> UserRepository for PostgresUserRepository<'a> {
-    fn add(&self, user: &User) -> Result<(), PersistenceError> {
+    fn add(&self, user: &User) -> Result<(), CoreError> {
         let new_user = NewUser {
             user_name: user.user_name.clone(),
             create_at: SystemTime::now(),
@@ -41,7 +41,7 @@ impl<'a> UserRepository for PostgresUserRepository<'a> {
 
         match insert_result {
             Ok(_) => Ok(()),
-            Err(e) => Err(PersistenceError { message: e.to_string() })
+            Err(e) => Err(CoreError{ message: e.to_string() })
         }
     }
 

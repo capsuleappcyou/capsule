@@ -15,7 +15,7 @@ use std::fs::create_dir_all;
 use std::ops::Deref;
 use std::path::{Path, PathBuf};
 
-use crate::CoreErr;
+use crate::CoreError;
 use crate::user::credential::{Credential, CredentialError};
 pub use crate::user::credential::pwd_credential::PlaintextCredential;
 use crate::user::credentials::Credentials;
@@ -50,7 +50,7 @@ impl<'a> User<'a> {
         }
     }
 
-    pub fn create_home_dir<P: AsRef<Path>>(&self, base_dir: P) -> Result<Box<Path>, CoreErr> {
+    pub fn create_home_dir<P: AsRef<Path>>(&self, base_dir: P) -> Result<Box<Path>, CoreError> {
         let home_dir = PathBuf::new()
             .join(base_dir)
             .join(self.user_name.as_str());
@@ -59,7 +59,7 @@ impl<'a> User<'a> {
 
         match result {
             Ok(_) => Ok(home_dir.into_boxed_path()),
-            Err(e) => Err(CoreErr { message: e.to_string() })
+            Err(e) => Err(CoreError { message: e.to_string() })
         }
     }
 }
@@ -75,7 +75,7 @@ mod tests {
 
     use tempdir::TempDir;
 
-    use crate::PersistenceError;
+    use crate::CoreError;
     use crate::user::{User, UserFactory};
     use crate::user::credential::{Credential, CredentialError};
     use crate::user::credential::pwd_credential::{Password, PasswordCredential, PlaintextCredential};
@@ -92,7 +92,7 @@ mod tests {
     }
 
     impl Credentials for FakeCredentials {
-        fn add(&mut self, credential: Box<dyn Credential>) -> Result<(), PersistenceError> {
+        fn add(&mut self, credential: Box<dyn Credential>) -> Result<(), CoreError> {
             self.credentials.push(credential);
             Ok(())
         }

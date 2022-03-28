@@ -17,7 +17,7 @@ use std::path::{Path, PathBuf};
 
 use git2::Repository;
 
-use crate::CoreErr;
+use crate::CoreError;
 
 mod repository;
 
@@ -27,18 +27,18 @@ pub struct Application {
 }
 
 impl Application {
-    pub fn initialize_git_repository(&self) -> Result<Box<Path>, CoreErr> {
+    pub fn initialize_git_repository(&self) -> Result<Box<Path>, CoreError> {
         let application_dir = self.get_application_dir();
 
         let result = Repository::init_bare(application_dir.as_path());
 
         match result {
             Ok(_) => Ok(application_dir.into_boxed_path()),
-            Err(e) => Err(CoreErr { message: e.to_string() })
+            Err(e) => Err(CoreError { message: e.to_string() })
         }
     }
 
-    pub fn install_git_hooks<P: AsRef<Path>>(&self, hooks_dir: P, hook_file_names: &Vec<&str>) -> Result<(), CoreErr> {
+    pub fn install_git_hooks<P: AsRef<Path>>(&self, hooks_dir: P, hook_file_names: &Vec<&str>) -> Result<(), CoreError> {
         for hook_file in hook_file_names {
             let from = PathBuf::new().join(&hooks_dir).join(hook_file);
             let to = self.get_application_dir().join("hooks").join(hook_file);
@@ -46,7 +46,7 @@ impl Application {
             let result = copy(from, to);
 
             if let Err(e) = result {
-                return Err(CoreErr { message: e.to_string() });
+                return Err(CoreError { message: e.to_string() });
             }
         }
 

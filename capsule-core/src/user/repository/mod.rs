@@ -1,3 +1,4 @@
+use crate::CoreError;
 // Copyright 2022 the original author or authors.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -11,11 +12,10 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-use crate::PersistenceError;
 use crate::user::User;
 
 pub trait UserRepository {
-    fn add(&self, user: &User) -> Result<(), PersistenceError>;
+    fn add(&self, user: &User) -> Result<(), CoreError>;
 
     fn find_by_user_name(&self, user_name: &str) -> Option<User>;
 }

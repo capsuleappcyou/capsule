@@ -12,12 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 use std::time::Duration;
-use async_std::prelude::FutureExt;
 use isahc::http::{Error, StatusCode, Uri};
 use isahc::prelude::*;
 use isahc::Request;
 use serde::{Deserialize, Serialize};
-use wiremock::matchers::body_json;
 
 use crate::api::{ApiError, ApplicationCreateResponse, CapsuleApi};
 

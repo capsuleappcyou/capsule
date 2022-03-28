@@ -15,7 +15,7 @@ use std::time::SystemTime;
 
 use diesel::{ExpressionMethods, PgConnection, QueryDsl, RunQueryDsl};
 
-use crate::PersistenceError;
+use crate::CoreError;
 use crate::user::credential::Credential;
 use crate::user::credential::pwd_credential::{Password, PasswordCredential, PlaintextCredential};
 use crate::user::credentials::Credentials;
@@ -30,7 +30,7 @@ pub(crate) struct PostgresCredentials<'a> {
 }
 
 impl<'a> Credentials for PostgresCredentials<'a> {
-    fn add(&mut self, input_credential: Box<dyn Credential>) -> Result<(), PersistenceError> {
+    fn add(&mut self, input_credential: Box<dyn Credential>) -> Result<(), CoreError> {
         let credential = input_credential.downcast_ref::<PlaintextCredential>();
 
         if let Some(c) = credential {
@@ -49,11 +49,11 @@ impl<'a> Credentials for PostgresCredentials<'a> {
 
             return match result {
                 Ok(_) => Ok(()),
-                Err(e) => Err(PersistenceError { message: e.to_string() })
+                Err(e) => Err(CoreError { message: e.to_string() })
             };
         }
 
-        Err(PersistenceError { message: "Unsupported credential.".to_string() })
+        Err(CoreError { message: "Unsupported credential.".to_string() })
     }
 
     fn get_credential_by_credential_name(&self, target_name: &str) -> Option<Box<dyn Credential>> {

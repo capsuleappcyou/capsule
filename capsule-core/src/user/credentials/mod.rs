@@ -1,3 +1,4 @@
+use crate::CoreError;
 // Copyright 2022 the original author or authors.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -11,11 +12,10 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-use crate::PersistenceError;
 use crate::user::credential::Credential;
 
 pub trait Credentials {
-    fn add(&mut self, credential: Box<dyn Credential>) -> Result<(), PersistenceError>;
+    fn add(&mut self, credential: Box<dyn Credential>) -> Result<(), CoreError>;
 
     fn get_credential_by_credential_name(&self, name: &str) -> Option<Box<dyn Credential>>;
 }

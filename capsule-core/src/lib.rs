@@ -24,11 +24,6 @@ pub mod user;
 pub mod application;
 
 #[derive(Debug, Clone)]
-pub struct PersistenceError {
-    pub message: String,
-}
-
-#[derive(Debug, Clone)]
-pub struct CoreErr {
+pub struct CoreError {
     message: String,
 }
