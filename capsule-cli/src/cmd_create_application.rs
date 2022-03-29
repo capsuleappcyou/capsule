@@ -44,10 +44,7 @@ mod tests {
     #[test]
     fn should_create_application_if_application_directory_is_not_a_git_repository() {
         let mut mock_api = MockCapsuleApi::new();
-
         let application_directory = PathBuf::new().join(".");
-
-        let directory_path = application_directory.as_path();
 
         mock_api
             .expect_create_application()
@@ -55,10 +52,9 @@ mod tests {
             .times(1)
             .returning(|name| Ok(ApplicationCreateResponse { name: "first_capsule_application".to_string() }));
 
-        let result = handle(directory_path, None, &mock_api);
+        let result = handle(application_directory.as_path(), None, &mock_api);
 
         assert_eq!(result.is_ok(), true);
-
         assert_eq!(result.ok().unwrap().name, "first_capsule_application");
         assert_eq!(is_git_repository(application_directory), false);
     }
