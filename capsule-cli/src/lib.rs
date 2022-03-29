@@ -16,7 +16,7 @@ pub mod cmd_apps;
 pub mod cmd_ps;
 pub mod api;
 
-pub struct CommandError {
+pub struct CliError {
     pub message: String,
 }
 

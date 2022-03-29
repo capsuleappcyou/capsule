@@ -16,7 +16,7 @@ use crypto::md5::Md5;
 use rand::Rng;
 use serde::{Deserialize, Serialize};
 
-use crate::user::credential::{Credential, CoreError};
+use crate::user::credential::{CoreError, Credential};
 
 #[derive(Debug, PartialEq)]
 pub struct PlaintextCredential {
@@ -91,7 +91,7 @@ impl PlaintextCredential {
 
 #[cfg(test)]
 mod tests {
-    use crate::user::credential::{Credential, CoreError};
+    use crate::user::credential::{CoreError, Credential};
     use crate::user::credential::pwd_credential::{Password, PasswordCredential, PlaintextCredential};
 
     struct UnSupportedCredential;

@@ -12,12 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 use std::time::Duration;
+
 use isahc::http::{Error, StatusCode, Uri};
 use isahc::prelude::*;
 use isahc::Request;
 use serde::{Deserialize, Serialize};
 
-use crate::api::{ApiError, ApplicationCreateResponse, CapsuleApi};
+use crate::api::{ApplicationCreateResponse, CapsuleApi};
+use crate::CliError;
 
 pub struct HttpCapsuleApi {
     uri: String,
@@ -29,26 +31,26 @@ struct CreateApplicationRequest {
     name: Option<String>,
 }
 
-impl From<isahc::http::Error> for ApiError {
+impl From<isahc::http::Error> for CliError {
     fn from(e: isahc::http::Error) -> Self {
         Self { message: e.to_string() }
     }
 }
 
-impl From<isahc::Error> for ApiError {
+impl From<isahc::Error> for CliError {
     fn from(e: isahc::Error) -> Self {
         Self { message: e.to_string() }
     }
 }
 
-impl From<serde_json::Error> for ApiError {
+impl From<serde_json::Error> for CliError {
     fn from(e: serde_json::Error) -> Self {
         Self { message: e.to_string() }
     }
 }
 
 impl CapsuleApi for HttpCapsuleApi {
-    fn create_application(&self, name: Option<String>) -> Result<ApplicationCreateResponse, ApiError> {
+    fn create_application(&self, name: Option<String>) -> Result<ApplicationCreateResponse, CliError> {
         let base_uri = &self.uri;
         let uri_str = format!("{base_uri}/applications");
 
@@ -60,7 +62,7 @@ impl CapsuleApi for HttpCapsuleApi {
 
         if response.status() != StatusCode::CREATED {
             let status_code = response.status().as_u16();
-            return Err(ApiError { message: format!("The server response status {status_code}.") });
+            return Err(CliError { message: format!("The server response status {status_code}.") });
         }
 
         let api_response = response.json::<ApplicationCreateResponse>()?;

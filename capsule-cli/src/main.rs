@@ -13,7 +13,7 @@
 // limitations under the License.
 use clap::{Parser, Subcommand};
 
-use capsule::{cmd_apps, cmd_create_application, cmd_ps, CommandError};
+use capsule::{CliError, cmd_apps, cmd_create_application, cmd_ps};
 
 #[derive(Parser)]
 #[clap(name = "capsule")]

@@ -1,5 +1,7 @@
 use serde::{Deserialize, Serialize};
 
+use crate::CliError;
+
 // Copyright 2022 the original author or authors.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,15 +17,11 @@ use serde::{Deserialize, Serialize};
 // limitations under the License.
 pub mod http;
 
-pub struct ApiError {
-    pub message: String,
-}
-
 #[derive(Serialize, Deserialize)]
 pub struct ApplicationCreateResponse {
     name: String,
 }
 
 pub trait CapsuleApi {
-    fn create_application(&self, name: Option<String>) -> Result<ApplicationCreateResponse, ApiError>;
+    fn create_application(&self, name: Option<String>) -> Result<ApplicationCreateResponse, CliError>;
 }

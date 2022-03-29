@@ -16,9 +16,9 @@ use std::path::{Path, PathBuf};
 use git2::Repository;
 
 use crate::api::{ApplicationCreateResponse, CapsuleApi};
-use crate::CommandError;
+use crate::CliError;
 
-pub fn handle<P, A>(application_directory: P, api: A) -> Result<ApplicationCreateResponse, CommandError>
+pub fn handle<P, A>(application_directory: P, api: A) -> Result<ApplicationCreateResponse, CliError>
     where P: AsRef<Path>,
           A: AsRef<dyn CapsuleApi> {
     unimplemented!()
