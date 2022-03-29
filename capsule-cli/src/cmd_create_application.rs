@@ -18,9 +18,9 @@ use git2::Repository;
 use crate::api::{ApplicationCreateResponse, CapsuleApi};
 use crate::CliError;
 
-pub fn handle<P, A>(_application_directory: P, api: &A) -> Result<ApplicationCreateResponse, CliError>
+pub fn handle<P, A>(_application_directory: P, application_name: Option<String>, api: &A) -> Result<ApplicationCreateResponse, CliError>
     where P: AsRef<Path>, A: CapsuleApi {
-    api.create_application(None)
+    api.create_application(application_name)
 }
 
 fn is_git_repository<P: AsRef<Path>>(application_directory: P) -> bool {
@@ -55,7 +55,7 @@ mod tests {
             .times(1)
             .returning(|name| Ok(ApplicationCreateResponse { name: "first_capsule_application".to_string() }));
 
-        let result = handle(directory_path, &mock_api);
+        let result = handle(directory_path, None, &mock_api);
 
         assert_eq!(result.is_ok(), true);
 
