@@ -18,10 +18,9 @@ use git2::Repository;
 use crate::api::{ApplicationCreateResponse, CapsuleApi};
 use crate::CliError;
 
-pub fn handle<P, A>(application_directory: P, api: A) -> Result<ApplicationCreateResponse, CliError>
-    where P: AsRef<Path>,
-          A: AsRef<dyn CapsuleApi> {
-    unimplemented!()
+pub fn handle<P, A>(_application_directory: P, api: &A) -> Result<ApplicationCreateResponse, CliError>
+    where P: AsRef<Path>, A: CapsuleApi {
+    api.create_application(None)
 }
 
 fn is_git_repository<P: AsRef<Path>>(application_directory: P) -> bool {
@@ -32,33 +31,36 @@ fn is_git_repository<P: AsRef<Path>>(application_directory: P) -> bool {
 mod tests {
     use std::path::PathBuf;
 
+    use mockall::{automock, mock, predicate::*};
     use tempdir::TempDir;
     use wiremock::{Mock, MockServer, ResponseTemplate};
     use wiremock::matchers::{method, path};
 
+    use crate::api::MockCapsuleApi;
     use crate::cmd_create_application::{handle, is_git_repository};
 
     use super::*;
 
-    // TODO create application if current directory is not a git repository.
-    #[async_std::test]
-    async fn should_create_application_if_application_directory_is_not_a_git_repository() {
-        // let mock_server = MockServer::start().await;
-        //
-        // Mock::given(method("POST"))
-        //     .and(path("/applications"))
-        //     .respond_with(ResponseTemplate::new(201)
-        //         .set_body_json(ApplicationCreateResult { name: "first_capsule_application".to_string() }))
-        //     .mount(&mock_server)
-        //     .await;
-        //
-        // let application_directory = PathBuf::new().join(".");
-        // let result = handle(application_directory.as_path());
-        //
-        // assert_eq!(result.is_ok(), true);
-        //
-        // let application_create_result = result.ok().unwrap();
-        // assert_eq!(application_create_result.name, "first_capsule_application")
+    #[test]
+    fn should_create_application_if_application_directory_is_not_a_git_repository() {
+        let mut mock_api = MockCapsuleApi::new();
+
+        let application_directory = PathBuf::new().join(".");
+
+        let directory_path = application_directory.as_path();
+
+        mock_api
+            .expect_create_application()
+            .with(eq(None))
+            .times(1)
+            .returning(|name| Ok(ApplicationCreateResponse { name: "first_capsule_application".to_string() }));
+
+        let result = handle(directory_path, &mock_api);
+
+        assert_eq!(result.is_ok(), true);
+
+        assert_eq!(result.ok().unwrap().name, "first_capsule_application");
+        assert_eq!(is_git_repository(application_directory), false);
     }
 
     // TODO add remote git repository if current directory is a git repository.
