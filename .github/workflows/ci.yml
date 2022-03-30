@@ -29,9 +29,9 @@ jobs:
       - name: lint
       - uses: actions/checkout@v2
       - uses: actions-rs/toolchain@v1
-          with:
-            toolchain: nightly
-            override: true
+        with:
+          toolchain: nightly
+          override: true
       - uses: actions-rs/cargo@v1
         with:
           command: clean
