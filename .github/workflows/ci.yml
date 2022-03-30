@@ -26,12 +26,15 @@ jobs:
         options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
 
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions-rs/toolchain@v1
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Toolchain
+        uses: actions-rs/toolchain@v1
         with:
           toolchain: nightly
           override: true
-      - uses: actions-rs/cargo@v1
+      - name: Clean
+        uses: actions-rs/cargo@v1
         with:
           command: clean
       - name: Configure Rust cache
