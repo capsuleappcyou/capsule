@@ -31,7 +31,6 @@ jobs:
         run: cargo test --verbose
       - name: Build
         run: cargo build --verbose
-      - name: Code Coverage
   lint:
     runs-on: ubuntu-latest
     steps:
