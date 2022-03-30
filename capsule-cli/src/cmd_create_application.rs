@@ -13,13 +13,24 @@
 // limitations under the License.
 use std::path::{Path, PathBuf};
 
-use git2::Repository;
+use git2::{Error, Repository};
 
 use crate::api::{ApplicationCreateResponse, CapsuleApi};
 use crate::CliError;
 
-pub fn handle<P, A>(_application_directory: P, application_name: Option<String>, api: &A) -> Result<ApplicationCreateResponse, CliError>
+impl From<git2::Error> for CliError {
+    fn from(e: Error) -> Self {
+        CliError { message: e.to_string() }
+    }
+}
+
+pub fn handle<P, A>(application_directory: P, application_name: Option<String>, api: &A) -> Result<ApplicationCreateResponse, CliError>
     where P: AsRef<Path>, A: CapsuleApi {
+    if is_git_repository(&application_directory) {
+        let repo = Repository::open(&application_directory)?;
+        repo.remote("capsule", "https://capsuleapp.cyou")?;
+    }
+
     api.create_application(application_name)
 }
 
@@ -31,6 +42,8 @@ fn is_git_repository<P: AsRef<Path>>(application_directory: P) -> bool {
 mod tests {
     use std::path::PathBuf;
 
+    use git2::ErrorClass::Repository;
+    use git2::Repository as Git;
     use mockall::{automock, mock, predicate::*};
     use tempdir::TempDir;
     use wiremock::{Mock, MockServer, ResponseTemplate};
@@ -44,7 +57,7 @@ mod tests {
     #[test]
     fn should_create_application_if_application_directory_is_not_a_git_repository() {
         let mut mock_api = MockCapsuleApi::new();
-        let application_directory = PathBuf::new().join(".");
+        let application_directory = TempDir::new(".").unwrap();
 
         mock_api
             .expect_create_application()
@@ -52,12 +65,35 @@ mod tests {
             .times(1)
             .returning(|name| Ok(ApplicationCreateResponse { name: "first_capsule_application".to_string() }));
 
-        let result = handle(application_directory.as_path(), None, &mock_api);
+        let result = handle(application_directory.path(), None, &mock_api);
 
         assert_eq!(result.is_ok(), true);
         assert_eq!(result.ok().unwrap().name, "first_capsule_application");
         assert_eq!(is_git_repository(application_directory), false);
     }
 
-    // TODO add remote git repository if current directory is a git repository.
+    #[test]
+    fn should_add_git_remote_if_application_directory_is_a_git_repository() {
+        let mut mock_api = MockCapsuleApi::new();
+        let application_directory = TempDir::new(".").unwrap();
+
+        let git_repo = Git::init(&application_directory).unwrap();
+
+        mock_api
+            .expect_create_application()
+            .with(eq(None))
+            .times(1)
+            .returning(|name| Ok(ApplicationCreateResponse { name: "first_capsule_application".to_string() }));
+
+        let result = handle(application_directory.path(), None, &mock_api);
+
+        let remotes = git_repo.remotes().unwrap();
+        let capsule_remote = remotes.iter().flatten().find(|it| { *it == "capsule" });
+
+        assert_eq!(result.is_ok(), true);
+        assert_eq!(result.ok().unwrap().name, "first_capsule_application");
+        assert_eq!(is_git_repository(&application_directory), true);
+        assert_eq!(capsule_remote.is_some(), true);
+        assert_eq!(capsule_remote.unwrap(), "capsule");
+    }
 }
