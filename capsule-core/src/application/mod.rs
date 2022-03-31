@@ -20,6 +20,7 @@ use git2::Repository;
 use crate::CoreError;
 
 mod repository;
+mod implementation;
 
 pub struct Application {
     name: String,
