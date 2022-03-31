@@ -16,4 +16,6 @@ use crate::CoreError;
 
 pub trait ApplicationRepository {
     fn add(&self, application: &Application) -> Result<(), CoreError>;
+
+    fn find_by_name(&self, name: &str) -> Option<Application>;
 }

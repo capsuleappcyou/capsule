@@ -1,3 +1,4 @@
+use std::ffi::OsString;
 // Copyright 2022 the original author or authors.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,8 +19,9 @@ use diesel::PgConnection;
 use diesel::result::Error;
 
 use crate::application::Application;
-use crate::application::implementation::postgres::models::NewApplication;
+use crate::application::implementation::postgres::models::{NewApplication, SavedApplication};
 use crate::application::implementation::postgres::schema::capsule_applications;
+use crate::application::implementation::postgres::schema::capsule_applications::dsl::*;
 use crate::application::repository::ApplicationRepository;
 use crate::CoreError;
 
@@ -46,6 +48,23 @@ impl<'a> ApplicationRepository for PostgresApplicationRepository<'a> {
             .execute(*&self.connection)?;
 
         Ok(())
+    }
+
+    fn find_by_name(&self, name: &str) -> Option<Application> {
+        let query_result = capsule_applications
+            .filter(application_name.eq(name))
+            .first::<SavedApplication>(*&self.connection);
+
+        match query_result {
+            Ok(saved_application) => {
+                let application = Application {
+                    name: saved_application.application_name,
+                    application_directory: OsString::from(saved_application.application_directory),
+                };
+                Some(application)
+            }
+            Err(_) => None
+        }
     }
 }
 
@@ -81,5 +100,32 @@ mod tests {
         let saved_application = query_result.unwrap();
         assert_eq!(saved_application.application_name, "first_capsule_application".to_string());
         assert_eq!(saved_application.application_directory, "/usr/applications/".to_string());
+    }
+
+    #[test]
+    fn should_find_application_by_name() {
+        let connection = &get_test_db_connection();
+
+        let repository: Box<dyn ApplicationRepository> = Box::new(PostgresApplicationRepository { connection });
+
+        let application = Application { name: "first_capsule_application".to_string(), application_directory: OsString::from("/usr/applications/") };
+
+        let _ = repository.add(&application);
+
+        let application = repository.find_by_name("first_capsule_application").unwrap();
+
+        assert_eq!(application.name, "first_capsule_application".to_string());
+        assert_eq!(application.application_directory, OsString::from("/usr/applications/"));
+    }
+
+    #[test]
+    fn should_not_find_application_if_application_present() {
+        let connection = &get_test_db_connection();
+
+        let repository: Box<dyn ApplicationRepository> = Box::new(PostgresApplicationRepository { connection });
+
+        let application = repository.find_by_name("first_capsule_application");
+
+        assert_eq!(application.is_none(), true);
     }
 }
