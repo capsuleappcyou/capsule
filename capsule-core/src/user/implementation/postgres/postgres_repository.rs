@@ -35,14 +35,11 @@ impl<'a> UserRepository for PostgresUserRepository<'a> {
             create_at: SystemTime::now(),
         };
 
-        let insert_result = diesel::insert_into(capsule_users::table)
+        insert_into(capsule_users::table)
             .values(&new_user)
-            .execute(*&self.connection);
+            .execute(*&self.connection)?;
 
-        match insert_result {
-            Ok(_) => Ok(()),
-            Err(e) => Err(CoreError { message: e.to_string() })
-        }
+        Ok(())
     }
 
     fn find_by_user_name(&self, target_user_name: &str) -> Option<User> {
