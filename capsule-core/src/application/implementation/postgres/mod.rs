@@ -11,3 +11,32 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+use diesel::{Connection, PgConnection};
+
+mod schema;
+mod models;
+mod postgres_repository;
+
+#[cfg(test)]
+embed_migrations!("./migrations/postgres");
+
+#[cfg(test)]
+pub(crate) fn get_test_db_connection() -> PgConnection {
+    let connection = establish_connection();
+
+    let _ = connection.begin_test_transaction();
+
+    let migration_result = embedded_migrations::run_with_output(&connection, &mut std::io::stdout());
+
+    if let Err(e) = migration_result {
+        eprintln!("migration error: {}", e);
+    }
+
+    connection
+}
+
+#[cfg(test)]
+pub(crate) fn establish_connection() -> PgConnection {
+    PgConnection::establish("postgres://postgres:123456@localhost/capsule")
+        .expect(&format!("Error connecting to {}", "postgres://postgres:123456@localhost/capsule"))
+}

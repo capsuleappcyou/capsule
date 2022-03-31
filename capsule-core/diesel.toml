@@ -2,4 +2,5 @@
 # see diesel.rs/guides/configuring-diesel-capsule-cli
 
 [print_schema]
-file = "src/user/implementation/postgres/schema.rs"
+file = "src/application/implementation/postgres/schema.rs"
+filter = { only_tables = ["capsule_applications"] }
