@@ -75,6 +75,7 @@ mod tests {
     use std::ffi::OsString;
 
     use diesel::*;
+    use tempdir::TempDir;
 
     use test_tool::get_test_db_connection;
 
@@ -103,7 +104,7 @@ mod tests {
         let saved_application = query_result.unwrap();
         assert_eq!(saved_application.application_name, "first_capsule_application".to_string());
         assert_eq!(saved_application.owner, "first_capsule_user".to_string());
-        assert_eq!(saved_application.application_directory, "/usr/applications/".to_string());
+        assert_eq!(saved_application.application_directory, application.application_directory.as_os_str().to_str().unwrap().to_string());
     }
 
     #[test]
@@ -112,15 +113,15 @@ mod tests {
 
         let repository: Box<dyn ApplicationRepository> = Box::new(PostgresApplicationRepository { connection });
 
-        let application = create_application();
+        let new_application = create_application();
 
-        let _ = repository.add(&application);
+        let _ = repository.add(&new_application);
 
         let application = repository.find_by_name("first_capsule_application").unwrap();
 
         assert_eq!(application.name, "first_capsule_application".to_string());
         assert_eq!(application.owner, "first_capsule_user".to_string());
-        assert_eq!(application.application_directory, OsString::from("/usr/applications/"));
+        assert_eq!(application.application_directory, new_application.application_directory);
     }
 
     #[test]
@@ -135,10 +136,12 @@ mod tests {
     }
 
     fn create_application() -> Application {
+        let temp_dir = TempDir::new("").unwrap();
+
         Application {
             name: "first_capsule_application".to_string(),
             owner: "first_capsule_user".to_string(),
-            application_directory: OsString::from("/usr/applications/"),
+            application_directory: OsString::from(temp_dir.path().as_os_str()),
         }
     }
 }
