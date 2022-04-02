@@ -24,6 +24,7 @@ mod implementation;
 
 pub struct Application {
     name: String,
+    owner: String,
     application_directory: OsString,
 }
 
@@ -72,9 +73,7 @@ mod tests {
 
     #[test]
     fn should_initialize_git_repository() {
-        let project_base_dir = TempDir::new("").unwrap();
-
-        let application = Application { name: "first_application".to_string(), application_directory: project_base_dir.path().as_os_str().to_os_string() };
+        let application = create_application();
 
         let result = application.initialize_git_repository();
         assert_eq!(result.is_ok(), true);
@@ -85,9 +84,7 @@ mod tests {
 
     #[test]
     fn should_install_git_hooks_to_application() {
-        let project_base_dir = TempDir::new("").unwrap();
-
-        let application = Application { name: "first_application".to_string(), application_directory: project_base_dir.path().as_os_str().to_os_string() };
+        let application = create_application();
 
         let _ = application.initialize_git_repository();
 
@@ -100,12 +97,19 @@ mod tests {
 
     #[test]
     fn should_error_when_install_git_hooks_to_application_if_application_not_initialized() {
-        let project_base_dir = TempDir::new("").unwrap();
-
-        let application = Application { name: "first_application".to_string(), application_directory: project_base_dir.path().as_os_str().to_os_string() };
+        let application = create_application();
 
         let result = application.install_git_hooks("./_fixture/git_hooks/", &vec!["TEST_HOOKS"]);
         assert_eq!(result.is_ok(), false);
+    }
+
+    fn create_application() -> Application {
+        let project_base_dir = TempDir::new("").unwrap();
+        Application {
+            name: "first_application".to_string(),
+            owner: "first_capsule_user".to_string(),
+            application_directory: project_base_dir.path().as_os_str().to_os_string(),
+        }
     }
 }
 

@@ -59,6 +59,7 @@ impl<'a> ApplicationRepository for PostgresApplicationRepository<'a> {
             Ok(saved_application) => {
                 let application = Application {
                     name: saved_application.application_name,
+                    owner: "ss".to_string(),
                     application_directory: OsString::from(saved_application.application_directory),
                 };
                 Some(application)
@@ -88,7 +89,7 @@ mod tests {
 
         let repository: Box<dyn ApplicationRepository> = Box::new(PostgresApplicationRepository { connection });
 
-        let application = Application { name: "first_capsule_application".to_string(), application_directory: OsString::from("/usr/applications/") };
+        let application = create_application();
 
         let result = repository.add(&application);
 
@@ -109,7 +110,7 @@ mod tests {
 
         let repository: Box<dyn ApplicationRepository> = Box::new(PostgresApplicationRepository { connection });
 
-        let application = Application { name: "first_capsule_application".to_string(), application_directory: OsString::from("/usr/applications/") };
+        let application = create_application();
 
         let _ = repository.add(&application);
 
@@ -128,5 +129,13 @@ mod tests {
         let application = repository.find_by_name("first_capsule_application");
 
         assert_eq!(application.is_none(), true);
+    }
+
+    fn create_application() -> Application {
+        Application {
+            name: "first_capsule_application".to_string(),
+            owner: "first_capsule_user".to_string(),
+            application_directory: OsString::from("/usr/applications/"),
+        }
     }
 }
