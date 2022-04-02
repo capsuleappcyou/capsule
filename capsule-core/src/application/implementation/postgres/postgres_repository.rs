@@ -39,6 +39,7 @@ impl<'a> ApplicationRepository for PostgresApplicationRepository<'a> {
     fn add(&self, application: &Application) -> Result<(), CoreError> {
         let new_application = NewApplication {
             application_name: application.name.clone(),
+            owner: application.owner.clone(),
             application_directory: application.application_directory.to_str().unwrap().to_string(),
             create_at: SystemTime::now(),
         };
@@ -59,7 +60,7 @@ impl<'a> ApplicationRepository for PostgresApplicationRepository<'a> {
             Ok(saved_application) => {
                 let application = Application {
                     name: saved_application.application_name,
-                    owner: "ss".to_string(),
+                    owner: saved_application.owner,
                     application_directory: OsString::from(saved_application.application_directory),
                 };
                 Some(application)
@@ -101,6 +102,7 @@ mod tests {
 
         let saved_application = query_result.unwrap();
         assert_eq!(saved_application.application_name, "first_capsule_application".to_string());
+        assert_eq!(saved_application.owner, "first_capsule_user".to_string());
         assert_eq!(saved_application.application_directory, "/usr/applications/".to_string());
     }
 
@@ -117,6 +119,7 @@ mod tests {
         let application = repository.find_by_name("first_capsule_application").unwrap();
 
         assert_eq!(application.name, "first_capsule_application".to_string());
+        assert_eq!(application.owner, "first_capsule_user".to_string());
         assert_eq!(application.application_directory, OsString::from("/usr/applications/"));
     }
 
