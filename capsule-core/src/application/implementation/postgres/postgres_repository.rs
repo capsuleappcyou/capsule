@@ -31,7 +31,7 @@ impl From<diesel::result::Error> for CoreError {
     }
 }
 
-pub(crate) struct PostgresApplicationRepository<'a> {
+pub struct PostgresApplicationRepository<'a> {
     pub connection: &'a PgConnection,
 }
 

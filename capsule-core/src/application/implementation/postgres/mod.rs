@@ -13,4 +13,4 @@
 // limitations under the License.
 mod schema;
 mod models;
-mod postgres_repository;
+pub(crate) mod postgres_repository;

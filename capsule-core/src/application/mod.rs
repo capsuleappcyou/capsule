@@ -17,15 +17,17 @@ use std::path::{Path, PathBuf};
 
 use git2::Repository;
 
+pub use implementation::postgres::postgres_repository::PostgresApplicationRepository;
+
 use crate::CoreError;
 
 mod repository;
 mod implementation;
 
 pub struct Application {
-    name: String,
-    owner: String,
-    application_directory: OsString,
+    pub name: String,
+    pub owner: String,
+    pub application_directory: OsString,
 }
 
 impl Application {
