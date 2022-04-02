@@ -513,7 +513,6 @@ version = "0.1.0"
 dependencies = [
  "chrono",
  "diesel",
- "diesel_migrations",
  "downcast-rs",
  "git2",
  "rand 0.8.5",
@@ -521,6 +520,7 @@ dependencies = [
  "serde",
  "serde_json",
  "tempdir",
+ "test-tool",
 ]
 
 [[package]]
@@ -2098,6 +2098,14 @@ name = "termtree"
 version = "0.2.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "507e9898683b6c43a9aa55b64259b721b52ba226e0f3779137e50ad114a4c90b"
+
+[[package]]
+name = "test-tool"
+version = "0.1.0"
+dependencies = [
+ "diesel",
+ "diesel_migrations",
+]
 
 [[package]]
 name = "textwrap"

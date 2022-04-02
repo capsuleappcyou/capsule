@@ -81,8 +81,9 @@ impl<'a> Credentials for PostgresCredentials<'a> {
 mod tests {
     use diesel::{ExpressionMethods, QueryDsl};
 
+    use test_tool::get_test_db_connection;
+
     use crate::user::credential::pwd_credential::{PasswordCredential, PlaintextCredential};
-    use crate::user::implementation::postgres::get_test_db_connection;
     use crate::user::implementation::postgres::models::SavedCapsuleUserCredential;
     use crate::user::implementation::postgres::postgres_credentials::tests::dsl::capsule_user_credentials;
     use crate::user::implementation::postgres::schema::capsule_user_credentials::*;

@@ -1,4 +1,3 @@
-use std::ffi::OsString;
 // Copyright 2022 the original author or authors.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,6 +11,7 @@ use std::ffi::OsString;
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+use std::ffi::OsString;
 use std::time::SystemTime;
 
 use diesel::*;
@@ -74,8 +74,9 @@ mod tests {
 
     use diesel::*;
 
+    use test_tool::get_test_db_connection;
+
     use crate::application::Application;
-    use crate::application::implementation::postgres::get_test_db_connection;
     use crate::application::implementation::postgres::models::SavedApplication;
     use crate::application::implementation::postgres::postgres_repository::PostgresApplicationRepository;
     use crate::application::implementation::postgres::schema::capsule_applications::dsl::*;

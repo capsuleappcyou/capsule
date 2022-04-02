@@ -14,9 +14,6 @@
 extern crate core;
 #[macro_use]
 extern crate diesel;
-#[cfg(test)]
-#[macro_use]
-extern crate diesel_migrations;
 #[macro_use]
 extern crate downcast_rs;
 

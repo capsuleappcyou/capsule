@@ -68,9 +68,11 @@ impl<'a> UserRepository for PostgresUserRepository<'a> {
 
 #[cfg(test)]
 mod tests {
+    use test_tool::get_test_db_connection;
+
     use crate::diesel::*;
-    use crate::user::implementation::postgres::{get_test_db_connection, PostgresUserFactory};
     use crate::user::implementation::postgres::models::SavedUser;
+    use crate::user::implementation::postgres::PostgresUserFactory;
     use crate::user::implementation::postgres::schema::capsule_users::dsl::*;
     use crate::user::UserFactory;
 
