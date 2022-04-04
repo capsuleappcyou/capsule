@@ -51,21 +51,23 @@ impl<'a> ApplicationRepository for PostgresApplicationRepository<'a> {
         Ok(())
     }
 
-    fn find_by_name(&self, name: &str) -> Option<Application> {
+    fn find_by_name(&self, name: &str) -> Result<Option<Application>, CoreError> {
         let query_result = capsule_applications
             .filter(application_name.eq(name))
-            .first::<SavedApplication>(*&self.connection);
+            .first::<SavedApplication>(*&self.connection)
+            .optional()?
+            .or_else(|| None);
 
         match query_result {
-            Ok(saved_application) => {
+            Some(saved_application) => {
                 let application = Application {
                     name: saved_application.application_name,
                     owner: saved_application.owner,
                     application_directory: OsString::from(saved_application.application_directory),
                 };
-                Some(application)
+                Ok(Some(application))
             }
-            Err(_) => None
+            None => Ok(None)
         }
     }
 }
@@ -117,7 +119,7 @@ mod tests {
 
         let _ = repository.add(&new_application);
 
-        let application = repository.find_by_name("first_capsule_application").unwrap();
+        let application = repository.find_by_name("first_capsule_application").unwrap().unwrap();
 
         assert_eq!(application.name, "first_capsule_application".to_string());
         assert_eq!(application.owner, "first_capsule_user".to_string());
@@ -132,7 +134,7 @@ mod tests {
 
         let application = repository.find_by_name("first_capsule_application");
 
-        assert_eq!(application.is_none(), true);
+        assert_eq!(application.unwrap().is_none(), true);
     }
 
     fn create_application() -> Application {
