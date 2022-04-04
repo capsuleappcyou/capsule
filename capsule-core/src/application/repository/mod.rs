@@ -19,5 +19,5 @@ pub trait ApplicationRepository {
 
     fn find_by_name(&self, name: &str) -> Result<Option<Application>, CoreError>;
 
-    fn find_applications_by_owner_name(&self, owner_name: String) -> Result<Vec<Application>, CoreError>;
+    fn find_applications_by_owner_name(&self, owner_name: &str) -> Result<Vec<Application>, CoreError>;
 }
