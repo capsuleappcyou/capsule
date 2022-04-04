@@ -14,6 +14,8 @@
 use std::time::SystemTime;
 
 use diesel::*;
+use diesel::expression::operators::Not;
+use git2::TraceLevel::Error;
 
 use crate::CoreError;
 use crate::user::implementation::postgres::models::{NewUser, SavedUser};
@@ -42,13 +44,15 @@ impl<'a> UserRepository for PostgresUserRepository<'a> {
         Ok(())
     }
 
-    fn find_by_user_name(&self, target_user_name: &str) -> Option<User> {
+    fn find_by_user_name(&self, target_user_name: &str) -> Result<Option<User>, CoreError> {
         let query_result = capsule_users
             .filter(user_name.eq(&target_user_name.to_string()))
-            .first::<SavedUser>(*&self.connection);
+            .first::<SavedUser>(*&self.connection)
+            .optional()?
+            .or_else(|| None);
 
         match query_result {
-            Ok(saved_user) => {
+            Some(saved_user) => {
                 let user = User {
                     user_name: saved_user.user_name.clone(),
                     credentials: Box::new(
@@ -59,9 +63,9 @@ impl<'a> UserRepository for PostgresUserRepository<'a> {
                     ),
                 };
 
-                Some(user)
+                Ok(Some(user))
             }
-            Err(_) => None
+            _ => Ok(None)
         }
     }
 }
@@ -113,9 +117,10 @@ mod tests {
 
         let _ = repository.add(&user);
 
-        let first_capsule_user = repository.find_by_user_name("first_capsule_user").unwrap();
+        let first_capsule_user = repository.find_by_user_name("first_capsule_user");
 
-        assert_eq!(first_capsule_user.user_name, "first_capsule_user");
+        assert_eq!(first_capsule_user.is_ok(), true);
+        assert_eq!(first_capsule_user.unwrap().unwrap().user_name, "first_capsule_user");
     }
 
     #[test]
@@ -126,6 +131,6 @@ mod tests {
 
         let first_capsule_user = repository.find_by_user_name("first_capsule_user");
 
-        assert_eq!(first_capsule_user.is_none(), true);
+        assert_eq!(first_capsule_user.unwrap().is_none(), true);
     }
 }

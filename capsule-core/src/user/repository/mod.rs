@@ -17,5 +17,5 @@ use crate::user::User;
 pub trait UserRepository {
     fn add(&self, user: &User) -> Result<(), CoreError>;
 
-    fn find_by_user_name(&self, user_name: &str) -> Option<User>;
+    fn find_by_user_name(&self, user_name: &str) -> Result<Option<User>, CoreError>;
 }
