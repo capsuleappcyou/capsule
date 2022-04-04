@@ -60,16 +60,32 @@ impl<'a> ApplicationRepository for PostgresApplicationRepository<'a> {
 
         match query_result {
             Some(saved_application) => {
-                let application = Application {
-                    name: saved_application.application_name,
-                    owner: saved_application.owner,
-                    application_directory: OsString::from(saved_application.application_directory),
-                };
+                let application = to_application(saved_application);
+
                 Ok(Some(application))
             }
             None => Ok(None)
         }
     }
+
+    fn find_applications_by_owner_name(&self, owner_name: String) -> Result<Vec<Application>, CoreError> {
+        let query_result = capsule_applications
+            .filter(owner.eq(owner_name))
+            .get_results::<SavedApplication>(*&self.connection)?;
+
+        let applications = query_result.into_iter().map(|it| to_application(it)).collect();
+
+        Ok(applications)
+    }
+}
+
+fn to_application(saved_application: SavedApplication) -> Application {
+    let application = Application {
+        name: saved_application.application_name,
+        owner: saved_application.owner,
+        application_directory: OsString::from(saved_application.application_directory),
+    };
+    application
 }
 
 #[cfg(test)]
@@ -93,7 +109,7 @@ mod tests {
 
         let repository: Box<dyn ApplicationRepository> = Box::new(PostgresApplicationRepository { connection });
 
-        let application = create_application();
+        let application = create_application("first_capsule_application".to_string(), "first_capsule_user".to_string());
 
         let result = repository.add(&application);
 
@@ -115,7 +131,7 @@ mod tests {
 
         let repository: Box<dyn ApplicationRepository> = Box::new(PostgresApplicationRepository { connection });
 
-        let new_application = create_application();
+        let new_application = create_application("first_capsule_application".to_string(), "first_capsule_user".to_string());
 
         let _ = repository.add(&new_application);
 
@@ -137,12 +153,31 @@ mod tests {
         assert_eq!(application.unwrap().is_none(), true);
     }
 
-    fn create_application() -> Application {
+    #[test]
+    fn should_find_by_application_owner() {
+        let connection = &get_test_db_connection();
+
+        let repository: Box<dyn ApplicationRepository> = Box::new(PostgresApplicationRepository { connection });
+
+        let new_application = create_application("first_application_name".to_string(), "first_application_user".to_string());
+        let _ = repository.add(&new_application);
+
+        let new_application = create_application("second_application_name".to_string(), "first_application_user".to_string());
+        let _ = repository.add(&new_application);
+
+        let applications = repository.find_applications_by_owner_name("first_application_user".to_string()).unwrap();
+
+        assert_eq!(applications.len(), 2);
+        assert_eq!(applications[0].name, "first_application_name");
+        assert_eq!(applications[1].name, "second_application_name");
+    }
+
+    fn create_application(new_application_name: String, owner_name: String) -> Application {
         let temp_dir = TempDir::new("").unwrap();
 
         Application {
-            name: "first_capsule_application".to_string(),
-            owner: "first_capsule_user".to_string(),
+            name: new_application_name,
+            owner: owner_name,
             application_directory: OsString::from(temp_dir.path().as_os_str()),
         }
     }
