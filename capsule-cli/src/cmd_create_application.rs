@@ -63,12 +63,19 @@ mod tests {
             .expect_create_application()
             .with(eq(None))
             .times(1)
-            .returning(|name| Ok(ApplicationCreateResponse { name: "first_capsule_application".to_string() }));
+            .returning(|name| Ok(ApplicationCreateResponse {
+                name: "first_capsule_application".to_string(),
+                url: "https://first-capsule-application.capsuleapp.cyou".to_string(),
+                git_repo: "https://git.capsuleapp.cyou/first-capsule-application.git".to_string(),
+            }));
 
         let result = handle(application_directory.path(), None, &mock_api);
 
         assert_eq!(result.is_ok(), true);
-        assert_eq!(result.ok().unwrap().name, "first_capsule_application");
+        let response = result.ok().unwrap();
+        assert_eq!(response.name, "first_capsule_application");
+        assert_eq!(response.url, "https://first-capsule-application.capsuleapp.cyou");
+        assert_eq!(response.git_repo, "https://git.capsuleapp.cyou/first-capsule-application.git");
         assert_eq!(is_git_repository(application_directory), false);
     }
 
@@ -83,7 +90,11 @@ mod tests {
             .expect_create_application()
             .with(eq(None))
             .times(1)
-            .returning(|name| Ok(ApplicationCreateResponse { name: "first_capsule_application".to_string() }));
+            .returning(|name| Ok(ApplicationCreateResponse {
+                name: "first_capsule_application".to_string(),
+                url: "https://first-capsule-application.capsuleapp.cyou".to_string(),
+                git_repo: "https://git.capsuleapp.cyou/first-capsule-application.git".to_string(),
+            }));
 
         let result = handle(application_directory.path(), None, &mock_api);
 

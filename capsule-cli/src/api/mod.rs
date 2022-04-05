@@ -22,6 +22,8 @@ pub mod http;
 #[derive(Serialize, Deserialize)]
 pub struct ApplicationCreateResponse {
     pub name: String,
+    pub url: String,
+    pub git_repo: String,
 }
 
 #[cfg_attr(test, automock)]

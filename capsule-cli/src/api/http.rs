@@ -67,7 +67,7 @@ impl CapsuleApi for HttpCapsuleApi {
 
         let api_response = response.json::<ApplicationCreateResponse>()?;
 
-        Ok(ApplicationCreateResponse { name: api_response.name })
+        Ok(ApplicationCreateResponse { name: api_response.name, url: api_response.url, git_repo: api_response.git_repo })
     }
 }
 
@@ -91,7 +91,11 @@ mod tests {
             .and(path("/applications"))
             .and(body_json(CreateApplicationRequest { name: Some("first_capsule_application".to_string()) }))
             .respond_with(ResponseTemplate::new(201)
-                .set_body_json(ApplicationCreateResponse { name: "first_capsule_application".to_string() }))
+                .set_body_json(ApplicationCreateResponse {
+                    name: "first_capsule_application".to_string(),
+                    url: "https://first-capsule-application.capsuleapp.cyou".to_string(),
+                    git_repo: "https://git.capsuleapp.cyou/first-capsule-application.git".to_string(),
+                }))
             .mount(&mock_server)
             .await;
 
@@ -109,7 +113,11 @@ mod tests {
         Mock::given(method("POST"))
             .and(path("/applications"))
             .respond_with(ResponseTemplate::new(500)
-                .set_body_json(ApplicationCreateResponse { name: "first_capsule_application".to_string() }))
+                .set_body_json(ApplicationCreateResponse {
+                    name: "first_capsule_application".to_string(),
+                    url: "https://first-capsule-application.capsuleapp.cyou".to_string(),
+                    git_repo: "https://git.capsuleapp.cyou/first-capsule-application.git".to_string(),
+                }))
             .mount(&mock_server)
             .await;
 
@@ -129,7 +137,11 @@ mod tests {
             .and(body_json(CreateApplicationRequest { name: Some("first_capsule_application".to_string()) }))
             .respond_with(ResponseTemplate::new(201)
                 .set_delay(Duration::from_secs(60))
-                .set_body_json(ApplicationCreateResponse { name: "first_capsule_application".to_string() }))
+                .set_body_json(ApplicationCreateResponse {
+                    name: "first_capsule_application".to_string(),
+                    url: "https://first-capsule-application.capsuleapp.cyou".to_string(),
+                    git_repo: "https://git.capsuleapp.cyou/first-capsule-application.git".to_string(),
+                }))
             .mount(&mock_server)
             .await;
 
