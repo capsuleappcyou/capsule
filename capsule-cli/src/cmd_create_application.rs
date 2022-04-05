@@ -56,18 +56,9 @@ mod tests {
 
     #[test]
     fn should_create_application_if_application_directory_is_not_a_git_repository() {
-        let mut mock_api = MockCapsuleApi::new();
         let application_directory = TempDir::new(".").unwrap();
 
-        mock_api
-            .expect_create_application()
-            .with(eq(None))
-            .times(1)
-            .returning(|name| Ok(ApplicationCreateResponse {
-                name: "first_capsule_application".to_string(),
-                url: "https://first-capsule-application.capsuleapp.cyou".to_string(),
-                git_repo: "https://git.capsuleapp.cyou/first-capsule-application.git".to_string(),
-            }));
+        let mock_api = mock_create_application_api();
 
         let result = handle(application_directory.path(), None, &mock_api);
 
@@ -86,15 +77,7 @@ mod tests {
 
         let git_repo = Git::init(&application_directory).unwrap();
 
-        mock_api
-            .expect_create_application()
-            .with(eq(None))
-            .times(1)
-            .returning(|name| Ok(ApplicationCreateResponse {
-                name: "first_capsule_application".to_string(),
-                url: "https://first-capsule-application.capsuleapp.cyou".to_string(),
-                git_repo: "https://git.capsuleapp.cyou/first-capsule-application.git".to_string(),
-            }));
+        mock_api = mock_create_application_api();
 
         let result = handle(application_directory.path(), None, &mock_api);
 
@@ -106,5 +89,19 @@ mod tests {
         assert_eq!(is_git_repository(&application_directory), true);
         assert_eq!(capsule_remote.is_some(), true);
         assert_eq!(capsule_remote.unwrap(), "capsule");
+    }
+
+    fn mock_create_application_api() -> MockCapsuleApi {
+        let mut mock_api = MockCapsuleApi::new();
+        mock_api
+            .expect_create_application()
+            .with(eq(None))
+            .times(1)
+            .returning(|name| Ok(ApplicationCreateResponse {
+                name: "first_capsule_application".to_string(),
+                url: "https://first-capsule-application.capsuleapp.cyou".to_string(),
+                git_repo: "https://git.capsuleapp.cyou/first-capsule-application.git".to_string(),
+            }));
+        mock_api
     }
 }

@@ -103,7 +103,10 @@ mod tests {
         let result = api.create_application(Some("first_capsule_application".to_string()));
 
         assert_eq!(result.is_ok(), true);
-        assert_eq!(result.ok().unwrap().name, "first_capsule_application");
+        let response = result.ok().unwrap();
+        assert_eq!(response.name, "first_capsule_application");
+        assert_eq!(response.url, "https://first-capsule-application.capsuleapp.cyou");
+        assert_eq!(response.git_repo, "https://git.capsuleapp.cyou/first-capsule-application.git");
     }
 
     #[async_std::test]
@@ -112,12 +115,7 @@ mod tests {
 
         Mock::given(method("POST"))
             .and(path("/applications"))
-            .respond_with(ResponseTemplate::new(500)
-                .set_body_json(ApplicationCreateResponse {
-                    name: "first_capsule_application".to_string(),
-                    url: "https://first-capsule-application.capsuleapp.cyou".to_string(),
-                    git_repo: "https://git.capsuleapp.cyou/first-capsule-application.git".to_string(),
-                }))
+            .respond_with(ResponseTemplate::new(500))
             .mount(&mock_server)
             .await;
 
@@ -136,12 +134,7 @@ mod tests {
             .and(path("/applications"))
             .and(body_json(CreateApplicationRequest { name: Some("first_capsule_application".to_string()) }))
             .respond_with(ResponseTemplate::new(201)
-                .set_delay(Duration::from_secs(60))
-                .set_body_json(ApplicationCreateResponse {
-                    name: "first_capsule_application".to_string(),
-                    url: "https://first-capsule-application.capsuleapp.cyou".to_string(),
-                    git_repo: "https://git.capsuleapp.cyou/first-capsule-application.git".to_string(),
-                }))
+                .set_delay(Duration::from_secs(60)))
             .mount(&mock_server)
             .await;
 
