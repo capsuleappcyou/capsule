@@ -13,7 +13,7 @@
 // limitations under the License.
 use std::time::Duration;
 
-use isahc::http::{Error, StatusCode, Uri};
+use isahc::http::StatusCode;
 use isahc::prelude::*;
 use isahc::Request;
 use serde::{Deserialize, Serialize};
@@ -22,8 +22,8 @@ use crate::api::{ApplicationCreateResponse, CapsuleApi};
 use crate::CliError;
 
 pub struct HttpCapsuleApi {
-    uri: String,
-    timeout: Duration,
+    pub uri: String,
+    pub timeout: Duration,
 }
 
 #[derive(Serialize, Deserialize)]

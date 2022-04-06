@@ -40,14 +40,9 @@ fn is_git_repository<P: AsRef<Path>>(application_directory: P) -> bool {
 
 #[cfg(test)]
 mod tests {
-    use std::path::PathBuf;
-
-    use git2::ErrorClass::Repository;
     use git2::Repository as Git;
-    use mockall::{automock, mock, predicate::*};
+    use mockall::{predicate::*};
     use tempdir::TempDir;
-    use wiremock::{Mock, MockServer, ResponseTemplate};
-    use wiremock::matchers::{method, path};
 
     use crate::api::MockCapsuleApi;
     use crate::cmd_create_application::{handle, is_git_repository};
@@ -72,12 +67,11 @@ mod tests {
 
     #[test]
     fn should_add_git_remote_if_application_directory_is_a_git_repository() {
-        let mut mock_api = MockCapsuleApi::new();
         let application_directory = TempDir::new(".").unwrap();
 
         let git_repo = Git::init(&application_directory).unwrap();
 
-        mock_api = mock_create_application_api();
+        let mock_api = mock_create_application_api();
 
         let result = handle(application_directory.path(), None, &mock_api);
 
@@ -85,7 +79,13 @@ mod tests {
         let capsule_remote = remotes.iter().flatten().find(|it| { *it == "capsule" });
 
         assert_eq!(result.is_ok(), true);
-        assert_eq!(result.ok().unwrap().name, "first_capsule_application");
+
+        let response = result.ok().unwrap();
+        assert_eq!(response.name, "first_capsule_application");
+        assert_eq!(response.name, "first_capsule_application");
+        assert_eq!(response.url, "https://first-capsule-application.capsuleapp.cyou");
+        assert_eq!(response.git_repo, "https://git.capsuleapp.cyou/first-capsule-application.git");
+
         assert_eq!(is_git_repository(&application_directory), true);
         assert_eq!(capsule_remote.is_some(), true);
         assert_eq!(capsule_remote.unwrap(), "capsule");
@@ -97,7 +97,7 @@ mod tests {
             .expect_create_application()
             .with(eq(None))
             .times(1)
-            .returning(|name| Ok(ApplicationCreateResponse {
+            .returning(|_| Ok(ApplicationCreateResponse {
                 name: "first_capsule_application".to_string(),
                 url: "https://first-capsule-application.capsuleapp.cyou".to_string(),
                 git_repo: "https://git.capsuleapp.cyou/first-capsule-application.git".to_string(),

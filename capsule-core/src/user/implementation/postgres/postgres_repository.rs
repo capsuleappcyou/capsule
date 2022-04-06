@@ -14,8 +14,6 @@
 use std::time::SystemTime;
 
 use diesel::*;
-use diesel::expression::operators::Not;
-use git2::TraceLevel::Error;
 
 use crate::CoreError;
 use crate::user::implementation::postgres::models::{NewUser, SavedUser};

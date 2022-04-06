@@ -11,9 +11,14 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+use std::io::Write;
+use std::time::Duration;
+
 use clap::{Parser, Subcommand};
 
-use capsule::{CliError, cmd_apps, cmd_create_application, cmd_ps};
+use capsule::{CliError, cmd_create_application};
+use capsule::api::CapsuleApi;
+use capsule::api::http::HttpCapsuleApi;
 
 #[derive(Parser)]
 #[clap(name = "capsule")]
@@ -27,23 +32,33 @@ struct Cli {
 #[derive(Subcommand)]
 enum Commands {
     /// create application
-    Create,
-    /// manage applications
-    Apps,
-    /// manage capsules
-    Ps,
+    Create {
+        /// application name
+        name: Option<String>
+    }
+}
+
+fn parse(api: impl CapsuleApi) {
+    let args: Cli = Cli::parse();
+
+    let result = match &args.command {
+        Commands::Create { name } =>
+            cmd_create_application::handle(".", name.clone(), &api),
+    };
+
+    if let Err(CliError { message }) = result {
+        println!("{}", message)
+    }
 }
 
 fn main() {
-    let args: Cli = Cli::parse();
+    let api = HttpCapsuleApi {
+        uri: "https://test.com".to_string(),
+        timeout: Duration::from_secs(5),
+    };
 
-    // let result = match &args.command {
-    //     Commands::Create => cmd_create_application::handle(),
-    //     Commands::Apps => cmd_apps::handle(),
-    //     Commands::Ps => cmd_ps::handle(),
-    // };
-    //
-    // if let Err(CommandError { message }) = result {
-    //     println!("{}", message)
-    // }
+    parse(api);
 }
+
+#[cfg(test)]
+mod tests {}
