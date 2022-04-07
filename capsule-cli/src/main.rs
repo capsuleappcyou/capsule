@@ -12,19 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 use std::io::Write;
-use std::time::Duration;
 
 use clap::{Parser, Subcommand};
 
 use capsule::{CliError, cmd_create_application};
 use capsule::api::CapsuleApi;
-use capsule::api::http::HttpCapsuleApi;
 
 #[derive(Parser)]
 #[clap(name = "capsule")]
 #[clap(about = "CLI to interact with Capsule", long_about = None)]
 #[clap(version = "1.0")]
-struct Cli {
+pub(crate) struct Cli {
     #[clap(subcommand)]
     pub command: Commands,
 }
@@ -38,27 +36,69 @@ enum Commands {
     }
 }
 
-fn parse(api: impl CapsuleApi) {
-    let args: Cli = Cli::parse();
+fn execute_command(args: &Cli, api: &impl CapsuleApi, writer: &mut impl Write) {
+    match &args.command {
+        Commands::Create { name } => {
+            let result = cmd_create_application::handle(".", name.clone(), api);
 
-    let result = match &args.command {
-        Commands::Create { name } =>
-            cmd_create_application::handle(".", name.clone(), &api),
+            if let Err(CliError { message }) = result {
+                writeln!(writer, "{}", message);
+            }
+        }
     };
-
-    if let Err(CliError { message }) = result {
-        println!("{}", message)
-    }
 }
 
 fn main() {
-    let api = HttpCapsuleApi {
-        uri: "https://test.com".to_string(),
-        timeout: Duration::from_secs(5),
-    };
+    // let args: Cli = Cli::parse();
 
-    parse(api);
+    // let api = HttpCapsuleApi {
+    //     uri: "https://test.com".to_string(),
+    //     timeout: Duration::from_secs(5),
+    // };
+    //
+    // parse(&api, &std::io::stdout());
 }
 
 #[cfg(test)]
-mod tests {}
+mod tests {
+    use std::time::Duration;
+    #[cfg(test)]
+    use mockall::{predicate::*};
+    use wiremock::{Mock, MockServer, ResponseTemplate};
+    use wiremock::matchers::{body_json, method, path};
+
+    use capsule::api::ApplicationCreateResponse;
+    use capsule::api::http::HttpCapsuleApi;
+
+    use crate::{Cli, execute_command};
+
+    use super::*;
+
+    #[async_std::test]
+    async fn should_print_url_and_git_repo_if_create_application_successfully() {
+        let mock_server = MockServer::start().await;
+
+        Mock::given(method("POST"))
+            .and(path("/applications"))
+            .respond_with(ResponseTemplate::new(201)
+                .set_body_json(ApplicationCreateResponse {
+                    name: "first_capsule_application".to_string(),
+                    url: "https://first-capsule-application.capsuleapp.cyou".to_string(),
+                    git_repo: "https://git.capsuleapp.cyou/first-capsule-application.git".to_string(),
+                }))
+            .mount(&mock_server)
+            .await;
+        let api = HttpCapsuleApi { uri: mock_server.uri(), timeout: Duration::from_secs(5) };
+
+        let args = Cli {
+            command: Commands::Create { name: None }
+        };
+
+        let mut output: Vec<u8> = vec![];
+
+        execute_command(&args, &api, &mut output);
+        println!("====={}=====", String::from_utf8(output).unwrap());
+
+        // assert_eq!(output, b"lorem ipsum");
+    }
+}

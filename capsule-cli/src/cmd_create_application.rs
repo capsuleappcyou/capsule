@@ -28,7 +28,13 @@ pub fn handle<P, A>(application_directory: P, application_name: Option<String>, 
     where P: AsRef<Path>, A: CapsuleApi {
     if is_git_repository(&application_directory) {
         let repo = Repository::open(&application_directory)?;
-        repo.remote("capsule", "https://capsuleapp.cyou")?;
+
+        let remotes = repo.remotes()?;
+        let capsule_remote = remotes.iter().flatten().find(|it| { *it == "capsule" });
+
+        if capsule_remote.is_none() {
+            repo.remote("capsule", "https://capsuleapp.cyou")?;
+        }
     }
 
     api.create_application(application_name)
@@ -89,6 +95,20 @@ mod tests {
         assert_eq!(is_git_repository(&application_directory), true);
         assert_eq!(capsule_remote.is_some(), true);
         assert_eq!(capsule_remote.unwrap(), "capsule");
+    }
+
+    #[test]
+    fn should_ok_if_capsule_remote_present_in_git_repo() {
+        let application_directory = TempDir::new(".").unwrap();
+
+        let git_repo = Git::init(&application_directory).unwrap();
+        let _ = git_repo.remote("capsule", "https://git.capsuleapp.cyou/first_capsule_application");
+
+        let mock_api = mock_create_application_api();
+
+        let result = handle(application_directory.path(), None, &mock_api);
+
+        assert_eq!(result.is_ok(), true);
     }
 
     fn mock_create_application_api() -> MockCapsuleApi {
