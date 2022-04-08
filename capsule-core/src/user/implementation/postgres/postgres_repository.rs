@@ -113,7 +113,7 @@ mod tests {
 
         let repository: Box<dyn UserRepository> = Box::new(PostgresUserRepository { connection });
 
-        let _ = repository.add(&user);
+        repository.add(&user).expect("could not add user");
 
         let first_capsule_user = repository.find_by_user_name("first_capsule_user");
 

@@ -147,7 +147,7 @@ mod tests {
         let mut user = user_factory.create_user(String::from("test"));
 
         let password = Box::new(PlaintextCredential { plaintext: String::from("password") });
-        let _ = user.add_credential(password);
+        user.add_credential(password).expect("could not add credential");
 
         let correct_password = Box::new(PlaintextCredential { plaintext: String::from("password") });
         let verify_result = user.verify_credential(correct_password);
@@ -162,7 +162,7 @@ mod tests {
         let mut user = user_factory.create_user(String::from("test"));
 
         let password = Box::new(PlaintextCredential { plaintext: String::from("password") });
-        let _ = user.add_credential(password);
+        user.add_credential(password).expect("could not add credential");
 
         let wrong_password = Box::new(PlaintextCredential { plaintext: String::from("wrong password") });
         let verify_result = user.verify_credential(wrong_password);
@@ -177,7 +177,7 @@ mod tests {
         let mut user = user_factory.create_user(String::from("test"));
 
         let password = Box::new(PlaintextCredential { plaintext: String::from("password") });
-        let _ = user.add_credential(password);
+        user.add_credential(password).expect("could not add credential");
 
         let unsupported_credential = Box::new(UnSupportedCredential {});
         let verify_result = user.verify_credential(unsupported_credential);
@@ -207,14 +207,14 @@ mod tests {
 
         let home_base_dir = TempDir::new("capsule_users").unwrap();
 
-        let _ = user.create_home_dir(home_base_dir.path().as_os_str());
+        user.create_home_dir(home_base_dir.path().as_os_str()).expect("could not create dir");
 
         let test_path = PathBuf::new()
             .join(Path::new(home_base_dir.path()))
             .join(Path::new("first_capsule_user"))
             .join(Path::new("test_path"));
-        let _ = create_dir(test_path.as_path());
-        let _ = user.create_home_dir(home_base_dir.path().as_os_str());
+        create_dir(test_path.as_path()).expect("could not create dir");
+        user.create_home_dir(home_base_dir.path().as_os_str()).expect("could not create dir");
 
         assert_eq!(test_path.as_path().exists(), true);
     }

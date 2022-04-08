@@ -88,7 +88,7 @@ mod tests {
     fn should_install_git_hooks_to_application() {
         let application = create_application();
 
-        let _ = application.initialize_git_repository();
+        application.initialize_git_repository().expect("could not initialize git repo");
 
         let result = application.install_git_hooks("./_fixture/git_hooks/", &vec!["TEST_HOOKS"]);
         assert_eq!(result.is_ok(), true);

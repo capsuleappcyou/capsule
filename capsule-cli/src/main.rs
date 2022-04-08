@@ -41,8 +41,12 @@ fn execute_command(args: &Cli, api: &impl CapsuleApi, writer: &mut impl Write) {
         Commands::Create { name } => {
             let result = cmd_create_application::handle(".", name.clone(), api);
 
-            if let Err(CliError { message }) = result {
-                writeln!(writer, "{}", message);
+            match result {
+                Err(CliError { message }) => writeln!(writer, "{}", message).expect("could not print"),
+                Ok(response) => {
+                    writeln!(writer, "url: {}", response.url).expect("could not print");
+                    writeln!(writer, "git: {}", response.git_repo).expect("could not print")
+                }
             }
         }
     };
@@ -62,10 +66,9 @@ fn main() {
 #[cfg(test)]
 mod tests {
     use std::time::Duration;
-    #[cfg(test)]
-    use mockall::{predicate::*};
+
     use wiremock::{Mock, MockServer, ResponseTemplate};
-    use wiremock::matchers::{body_json, method, path};
+    use wiremock::matchers::{method, path};
 
     use capsule::api::ApplicationCreateResponse;
     use capsule::api::http::HttpCapsuleApi;
@@ -97,8 +100,11 @@ mod tests {
         let mut output: Vec<u8> = vec![];
 
         execute_command(&args, &api, &mut output);
-        println!("====={}=====", String::from_utf8(output).unwrap());
 
-        // assert_eq!(output, b"lorem ipsum");
+        let output_strings = String::from_utf8(output).unwrap();
+        let lines: Vec<&str> = output_strings.split("\n").collect();
+
+        assert_eq!(lines[0], "url: https://first-capsule-application.capsuleapp.cyou");
+        assert_eq!(lines[1], "git: https://git.capsuleapp.cyou/first-capsule-application.git");
     }
 }

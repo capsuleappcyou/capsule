@@ -24,7 +24,7 @@ embed_migrations!("../capsule-core/migrations/postgres");
 pub fn get_test_db_connection() -> PgConnection {
     let connection = establish_connection();
 
-    let _ = connection.begin_test_transaction();
+    connection.begin_test_transaction().expect("could not begin test transaction");
 
     let migration_result = embedded_migrations::run_with_output(&connection, &mut std::io::stdout());
 

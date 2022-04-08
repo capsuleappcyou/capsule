@@ -21,10 +21,10 @@ fn should_verify_correct_password() {
     let user_repository = PostgresUserRepository { connection };
 
     let mut user = user_factory.create_user("first_capsule_user".to_string());
-    let _ = user_repository.add(&user);
+    user_repository.add(&user).expect("count not add user.");
 
     let password = PlaintextCredential { plaintext: "capsule_password".to_string() };
-    let _ = user.add_credential(Box::new(password));
+    user.add_credential(Box::new(password)).expect("could not add credential");
 
     let correct_password = PlaintextCredential { plaintext: "capsule_password".to_string() };
     let password_verify_result = user.verify_credential(Box::new(correct_password));
@@ -39,10 +39,10 @@ fn should_verify_incorrect_password() {
     let user_repository = PostgresUserRepository { connection };
 
     let mut user = user_factory.create_user("first_capsule_user".to_string());
-    let _ = user_repository.add(&user);
+    user_repository.add(&user).expect("could not add user");
 
     let password = PlaintextCredential { plaintext: "capsule_password".to_string() };
-    let _ = user.add_credential(Box::new(password));
+    user.add_credential(Box::new(password)).expect("could not add credential");
 
     let correct_password = PlaintextCredential { plaintext: "wrong_capsule_password".to_string() };
     let password_verify_result = user.verify_credential(Box::new(correct_password));

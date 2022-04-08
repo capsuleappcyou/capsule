@@ -129,7 +129,7 @@ mod tests {
         };
 
         let pwd_credential = PlaintextCredential { plaintext: String::from("password") };
-        let _ = credentials.add(Box::new(pwd_credential));
+        credentials.add(Box::new(pwd_credential)).expect("could not add credential");
 
         let saved_credential = credentials.get_credential_by_credential_name("password").unwrap();
         let credential = saved_credential.downcast_ref::<PasswordCredential>().unwrap();
@@ -162,7 +162,7 @@ mod tests {
         };
 
         let pwd_credential = PlaintextCredential { plaintext: String::from("password") };
-        let _ = credentials.add(Box::new(pwd_credential));
+        credentials.add(Box::new(pwd_credential)).expect("could not add credential");
 
         let credential = credentials.get_credential_by_credential_name("not_exists");
 
@@ -180,7 +180,7 @@ mod tests {
 
         let pwd_credential = PlaintextCredential { plaintext: String::from("password") };
 
-        let _ = credentials.add(Box::new(pwd_credential));
+        credentials.add(Box::new(pwd_credential)).expect("could not add credential");
 
         let duplicated_credential = PlaintextCredential { plaintext: String::from("password") };
         let result = credentials.add(Box::new(duplicated_credential));

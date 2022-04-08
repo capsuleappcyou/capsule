@@ -102,7 +102,8 @@ mod tests {
         let application_directory = TempDir::new(".").unwrap();
 
         let git_repo = Git::init(&application_directory).unwrap();
-        let _ = git_repo.remote("capsule", "https://git.capsuleapp.cyou/first_capsule_application");
+        git_repo.remote("capsule", "https://git.capsuleapp.cyou/first_capsule_application")
+            .expect("could not add git remote");
 
         let mock_api = mock_create_application_api();
 

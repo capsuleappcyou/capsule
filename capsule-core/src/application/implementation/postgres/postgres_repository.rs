@@ -133,7 +133,7 @@ mod tests {
 
         let new_application = create_application("first_capsule_application", "first_capsule_user");
 
-        let _ = repository.add(&new_application);
+        repository.add(&new_application).expect("could not add application");
 
         let application = repository.find_by_name("first_capsule_application").unwrap().unwrap();
 
@@ -160,10 +160,10 @@ mod tests {
         let repository: Box<dyn ApplicationRepository> = Box::new(PostgresApplicationRepository { connection });
 
         let new_application = create_application("first_application_name", "first_application_user");
-        let _ = repository.add(&new_application);
+        repository.add(&new_application).expect("could not add application");
 
         let new_application = create_application("second_application_name", "first_application_user");
-        let _ = repository.add(&new_application);
+        repository.add(&new_application).expect("could not add application");
 
         let applications = repository.find_applications_by_owner_name("first_application_user").unwrap();
 
