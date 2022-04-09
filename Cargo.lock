@@ -301,18 +301,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "capsule-api-server"
-version = "0.1.0"
-dependencies = [
- "actix-web",
- "capsule-core",
- "git2",
- "serde",
- "serde_json",
- "test-tool",
-]
-
-[[package]]
 name = "capsule-core"
 version = "0.1.0"
 dependencies = [
@@ -326,6 +314,18 @@ dependencies = [
  "serde",
  "serde_json",
  "tempdir",
+ "test-tool",
+]
+
+[[package]]
+name = "capsule-server"
+version = "0.1.0"
+dependencies = [
+ "actix-web",
+ "capsule-core",
+ "git2",
+ "serde",
+ "serde_json",
  "test-tool",
 ]
 
