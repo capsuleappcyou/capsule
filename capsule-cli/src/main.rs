@@ -12,11 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 use std::io::Write;
+use std::time::Duration;
 
 use clap::{Parser, Subcommand};
 
 use capsule::{CliError, cmd_create_application};
 use capsule::api::CapsuleApi;
+use capsule::api::http::HttpCapsuleApi;
 
 #[derive(Parser)]
 #[clap(name = "capsule")]
@@ -55,14 +57,14 @@ fn execute_command(args: &Cli, api: &impl CapsuleApi, writer: &mut impl Write) {
 }
 
 fn main() {
-    // let args: Cli = Cli::parse();
+    let args: Cli = Cli::parse();
 
-    // let api = HttpCapsuleApi {
-    //     uri: "https://test.com".to_string(),
-    //     timeout: Duration::from_secs(5),
-    // };
-    //
-    // parse(&api, &std::io::stdout());
+    let api = HttpCapsuleApi {
+        uri: "http://127.0.0.1:7892".to_string(),
+        timeout: Duration::from_secs(5),
+    };
+
+    execute_command(&args, &api, &mut std::io::stdout());
 }
 
 #[cfg(test)]
