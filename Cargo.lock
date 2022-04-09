@@ -513,7 +513,10 @@ name = "capsule-api-server"
 version = "0.1.0"
 dependencies = [
  "actix-web",
+ "capsule-core",
  "serde",
+ "serde_json",
+ "test-tool",
 ]
 
 [[package]]

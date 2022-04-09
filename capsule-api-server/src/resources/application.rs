@@ -1,3 +1,5 @@
+use std::ffi::OsString;
+
 // Copyright 2022 the original author or authors.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -11,12 +13,21 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-use actix_web::{HttpResponse, post, web};
+use actix_web::{http, post, Responder, web};
 use serde::{Deserialize, Serialize};
 
-#[derive(Deserialize, Serialize, Debug)]
+use capsule_core::application::Application;
+
+#[derive(Deserialize, Serialize)]
 pub struct ApplicationCreateRequest {
     name: Option<String>,
+}
+
+#[derive(Deserialize, Serialize)]
+pub struct ApplicationCreateResponse {
+    name: String,
+    url: String,
+    git_repo: String,
 }
 
 impl Default for ApplicationCreateRequest {
@@ -28,8 +39,17 @@ impl Default for ApplicationCreateRequest {
 }
 
 #[post("/applications")]
-pub async fn create_application(_request: web::Json<ApplicationCreateRequest>) -> HttpResponse {
-    HttpResponse::Created().finish()
+pub async fn create_application(request: web::Json<ApplicationCreateRequest>) -> impl Responder {
+    let application = Application::new(
+        request.name.clone(), "capsule".to_string(), OsString::from("/tmp/capsule/"));
+
+    let response = ApplicationCreateResponse {
+        name: application.name.clone(),
+        url: format!("https://{}.capsuleapp.cyou", application.name.clone()),
+        git_repo: format!("https://git.capsuleapp.cyou/{}.git", application.name.clone()),
+    };
+
+    (web::Json(response), http::StatusCode::CREATED)
 }
 
 #[cfg(test)]
@@ -40,7 +60,7 @@ mod tests {
     use super::*;
 
     #[actix_web::test]
-    async fn create_application_should_ok() {
+    async fn should_201_if_create_application_successfully() {
         let app =
             test::init_service(App::new().service(create_application))
                 .await;
@@ -51,7 +71,29 @@ mod tests {
             .to_request();
 
         let resp = app.call(req).await.unwrap();
-
         assert_eq!(resp.status(), http::StatusCode::CREATED);
+    }
+
+    #[actix_web::test]
+    async fn should_return_application_information_if_create_successfully() {
+        let app =
+            test::init_service(App::new().service(create_application))
+                .await;
+
+        let req = test::TestRequest::post()
+            .uri("/applications")
+            .set_json(ApplicationCreateRequest { name: Some("first_capsule_application".to_string()) })
+            .to_request();
+
+        let resp = app.call(req).await.unwrap();
+        let expect = ApplicationCreateResponse {
+            name: "first_capsule_application".to_string(),
+            url: "https://first_capsule_application.capsuleapp.cyou".to_string(),
+            git_repo: "https://git.capsuleapp.cyou/first_capsule_application.git".to_string(),
+        };
+        let expect_json = serde_json::to_string(&expect).unwrap();
+
+        let body = test::read_body(resp).await;
+        assert_eq!(actix_web::web::Bytes::from(expect_json), body);
     }
 }
