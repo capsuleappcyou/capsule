@@ -2,5 +2,4 @@
 members = [
     "capsule-api-server",
     "capsule-core",
-    "capsule-cli",
 ]
