@@ -223,6 +223,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "anarchist-readable-name-generator-lib"
+version = "0.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "446c3d443c66204f3eb20cd453db1beead7e6da005ca14273ac6694cd2368e9b"
+dependencies = [
+ "rand 0.8.5",
+]
+
+[[package]]
 name = "anyhow"
 version = "1.0.56"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -511,6 +520,7 @@ dependencies = [
 name = "capsule-core"
 version = "0.1.0"
 dependencies = [
+ "anarchist-readable-name-generator-lib",
  "chrono",
  "diesel",
  "downcast-rs",

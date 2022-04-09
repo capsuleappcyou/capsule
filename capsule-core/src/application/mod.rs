@@ -15,7 +15,9 @@ use std::ffi::OsString;
 use std::fs::copy;
 use std::path::{Path, PathBuf};
 
+use anarchist_readable_name_generator_lib::readable_name;
 use git2::Repository;
+use rand::Rng;
 
 pub use implementation::postgres::postgres_repository::PostgresApplicationRepository;
 
@@ -31,6 +33,24 @@ pub struct Application {
 }
 
 impl Application {
+    pub fn new(new_name: Option<String>, owner: String, application_directory: OsString) -> Self {
+        let name = match new_name {
+            Some(app_name) => app_name,
+            _ => {
+                let random_name = readable_name();
+                let random_number: u32 = rand::thread_rng().gen();
+
+                format!("{random_name}_{random_number}")
+            }
+        };
+
+        Self {
+            name,
+            owner,
+            application_directory,
+        }
+    }
+
     pub fn initialize_git_repository(&self) -> Result<Box<Path>, CoreError> {
         let application_dir = self.get_application_dir();
 
@@ -75,7 +95,7 @@ mod tests {
 
     #[test]
     fn should_initialize_git_repository() {
-        let application = create_application();
+        let application = create_application(Some("first_application".to_string()));
 
         let result = application.initialize_git_repository();
         assert_eq!(result.is_ok(), true);
@@ -86,7 +106,7 @@ mod tests {
 
     #[test]
     fn should_install_git_hooks_to_application() {
-        let application = create_application();
+        let application = create_application(Some("first_application".to_string()));
 
         application.initialize_git_repository().expect("could not initialize git repo");
 
@@ -99,19 +119,26 @@ mod tests {
 
     #[test]
     fn should_error_when_install_git_hooks_to_application_if_application_not_initialized() {
-        let application = create_application();
+        let application = create_application(Some("first_application".to_string()));
 
         let result = application.install_git_hooks("./_fixture/git_hooks/", &vec!["TEST_HOOKS"]);
         assert_eq!(result.is_ok(), false);
     }
 
-    fn create_application() -> Application {
+    #[test]
+    fn should_generate_application_if_not_given_application_name() {
+        let application = create_application(None);
+
+        println!("{}", &application.name);
+        assert_eq!(application.name.is_empty(), false);
+    }
+
+    fn create_application(name: Option<String>) -> Application {
         let project_base_dir = TempDir::new("").unwrap();
-        Application {
-            name: "first_application".to_string(),
-            owner: "first_capsule_user".to_string(),
-            application_directory: project_base_dir.path().as_os_str().to_os_string(),
-        }
+        Application::new(
+            name,
+            "first_capsule_user".to_string(),
+            project_base_dir.path().as_os_str().to_os_string(),
+        )
     }
 }
-

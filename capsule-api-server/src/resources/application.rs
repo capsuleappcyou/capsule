@@ -16,12 +16,20 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Deserialize, Serialize, Debug)]
 pub struct ApplicationCreateRequest {
-    name: String,
+    name: Option<String>,
+}
+
+impl Default for ApplicationCreateRequest {
+    fn default() -> Self {
+        Self {
+            name: None
+        }
+    }
 }
 
 #[post("/applications")]
-pub async fn create_application(request: web::Json<ApplicationCreateRequest>) -> HttpResponse {
-    HttpResponse::Created().body(request.name.clone())
+pub async fn create_application(_request: web::Json<ApplicationCreateRequest>) -> HttpResponse {
+    HttpResponse::Created().finish()
 }
 
 #[cfg(test)]
@@ -39,9 +47,7 @@ mod tests {
 
         let req = test::TestRequest::post()
             .uri("/applications")
-            .set_json(ApplicationCreateRequest {
-                name: "test-application".to_owned(),
-            })
+            .set_json(ApplicationCreateRequest::default())
             .to_request();
 
         let resp = app.call(req).await.unwrap();

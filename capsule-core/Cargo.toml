@@ -28,6 +28,7 @@ serde_json = "1.0"
 rust-crypto = "0.2.36"
 rand = "0.8.5"
 git2 = "0.14.2"
+anarchist-readable-name-generator-lib = "0.1.1"
 
 [dev-dependencies.test-tool]
 version = "0.1.0"
