@@ -39,11 +39,13 @@ enum Commands {
 fn execute_command(args: &Cli, api: &impl CapsuleApi, writer: &mut impl Write) {
     match &args.command {
         Commands::Create { name } => {
+            write!(writer, "Creating application... ").expect("could not print");
             let result = cmd_create_application::handle(".", name.clone(), api);
 
             match result {
                 Err(CliError { message }) => writeln!(writer, "{}", message).expect("could not print"),
                 Ok(response) => {
+                    writeln!(writer, "done, {}", response.name).expect("could not print");
                     writeln!(writer, "url: {}", response.url).expect("could not print");
                     writeln!(writer, "git: {}", response.git_repo).expect("could not print")
                 }
@@ -104,7 +106,8 @@ mod tests {
         let output_strings = String::from_utf8(output).unwrap();
         let lines: Vec<&str> = output_strings.split("\n").collect();
 
-        assert_eq!(lines[0], "url: https://first-capsule-application.capsuleapp.cyou");
-        assert_eq!(lines[1], "git: https://git.capsuleapp.cyou/first-capsule-application.git");
+        assert_eq!(lines[0], "Creating application... done, first_capsule_application");
+        assert_eq!(lines[1], "url: https://first-capsule-application.capsuleapp.cyou");
+        assert_eq!(lines[2], "git: https://git.capsuleapp.cyou/first-capsule-application.git");
     }
 }
