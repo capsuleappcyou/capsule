@@ -37,6 +37,10 @@ pub struct PostgresApplicationRepository<'a> {
 
 impl<'a> ApplicationRepository for PostgresApplicationRepository<'a> {
     fn add(&self, application: &Application) -> Result<(), CoreError> {
+        if self.find_by_name(application.name.as_str())?.is_some() {
+            return Err(CoreError { message: "application name is already taken".to_string() });
+        }
+
         let new_application = NewApplication {
             application_name: application.name.clone(),
             owner: application.owner.clone(),
@@ -170,6 +174,20 @@ mod tests {
         assert_eq!(applications.len(), 2);
         assert_eq!(applications[0].name, "first_application_name");
         assert_eq!(applications[1].name, "second_application_name");
+    }
+
+    #[test]
+    fn should_not_has_same_name_application() {
+        let connection = &get_test_db_connection();
+
+        let repository: Box<dyn ApplicationRepository> = Box::new(PostgresApplicationRepository { connection });
+
+        let new_application = create_application("first_application_name", "first_application_user");
+        repository.add(&new_application).expect("could not add application");
+
+        let result = repository.add(&new_application);
+        assert_eq!(result.is_err(), true);
+        assert_eq!(result.err().unwrap().message, "application name is already taken");
     }
 
     fn create_application<T: Into<String>>(new_application_name: T, owner_name: T) -> Application {
