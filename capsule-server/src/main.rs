@@ -21,7 +21,7 @@ mod resources;
 async fn main() -> std::io::Result<()> {
     HttpServer::new(|| App::new()
         .service(application::create_application))
-        .bind(("127.0.0.1", 7892))?
+        .bind(("::", 80))?
         .run()
         .await
 }
