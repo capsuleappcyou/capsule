@@ -64,6 +64,7 @@ jobs:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.CAPSULE_SERVER_ADMIN }}
           key: ${{ secrets.KEY }}
+          fingerprint: ${{ secrets.SSH_TARGET_FINGERPRINT }}
           source: |
             target/release/capsule
           target: /home/ubuntu/capsule-server/capsule.new
