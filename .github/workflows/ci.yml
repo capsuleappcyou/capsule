@@ -66,8 +66,8 @@ jobs:
           key: ${{ secrets.KEY }}
           fingerprint: ${{ secrets.SSH_TARGET_FINGERPRINT }}
           source: |
-            $(pwd)/target/release/capsule
-          target: /home/ubuntu/capsule-server/capsule.new
+            /home/runner/work/capsule/capsule/target/release/capsule
+          target: ${{secrets.TARGET_PATH}}/capsule.new
       - name: Startup service on demo server
         uses: appleboy/ssh-action@master
         with:
