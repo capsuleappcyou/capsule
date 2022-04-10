@@ -56,7 +56,9 @@ jobs:
       #          github-token: ${{ secrets.GITHUB_TOKEN }}
       #          path-to-lcov: ${{ steps.coverage.outputs.report }}
       - name: Build
-        run: cargo build --release
+        run: |
+#          cargo build --release
+          touch capsule
       - name: Upload to dome server
         uses: nicklasfrahm/scp-action@main
         with:
