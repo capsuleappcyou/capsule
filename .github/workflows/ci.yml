@@ -57,25 +57,20 @@ jobs:
           path-to-lcov: ${{ steps.coverage.outputs.report }}
       - name: Build
         run: cargo build --release
-      - name: Upload to dome server
-        uses: nicklasfrahm/scp-action@main
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
         with:
-          direction: upload
-          host: ${{ secrets.HOST }}
-          username: ${{ secrets.CAPSULE_SERVER_ADMIN }}
-          key: ${{ secrets.KEY }}
-          fingerprint: ${{ secrets.SSH_TARGET_FINGERPRINT }}
-          source: target/release/capsule-server
-          target: /home/ubuntu/capsule-server/capsule-server.new
-      - name: Startup service on demo server
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.HOST }}
-          username: ${{ secrets.CAPSULE_SERVER_ADMIN }}
-          key: ${{ secrets.KEY }}
-          script: |
-            cd capsule-server
-            kill -9 `cat capsule-server.pid`
-            rm capsule-server 
-            mv capsule-server.new capsule-server
-            nohup capsule-server > capsule-server.out 2>&1 & echo $! > capsule-server.pid
+          name: capsule-server
+          path: target/release/capsule-server
+#      - name: Startup service on demo server
+#        uses: appleboy/ssh-action@master
+#        with:
+#          host: ${{ secrets.HOST }}
+#          username: ${{ secrets.CAPSULE_SERVER_ADMIN }}
+#          key: ${{ secrets.KEY }}
+#          script: |
+#            cd capsule-server
+#            kill -9 `cat capsule-server.pid`
+#            rm capsule-server
+#            mv capsule-server.new capsule-server
+#            nohup capsule-server > capsule-server.out 2>&1 & echo $! > capsule-server.pid
