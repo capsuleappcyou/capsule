@@ -67,7 +67,7 @@ jobs:
           fingerprint: ${{ secrets.SSH_TARGET_FINGERPRINT }}
           source: |
             ./target/release/capsule
-          target: ${{secrets.TARGET_PATH}}/capsule.new
+          target: ${{secrets.TARGET_PATH}}
       - name: Startup service on demo server
         uses: appleboy/ssh-action@master
         with:
