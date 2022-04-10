@@ -73,4 +73,5 @@ jobs:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.CAPSULE_SERVER_ADMIN }}
           key: ${{ secrets.KEY }}
-          script: whoami
+          script: |
+            whoami
