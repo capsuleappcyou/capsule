@@ -74,4 +74,8 @@ jobs:
           username: ${{ secrets.CAPSULE_SERVER_ADMIN }}
           key: ${{ secrets.KEY }}
           script: |
-            whoami
+            cd capsule-server
+            kill -9 `cat capsule.pid`
+            rm capsule 
+            mv capsule.new capsule
+            nohup capsule > capsule.out 2>&1 & echo $! > capsule.pid
