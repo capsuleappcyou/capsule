@@ -57,8 +57,3 @@ jobs:
           path-to-lcov: ${{ steps.coverage.outputs.report }}
       - name: Build
         run: cargo build --release
-      - name: Upload artifact
-        uses: actions/upload-artifact@v3
-        with:
-          name: capsule-server
-          path: target/release/capsule-server
