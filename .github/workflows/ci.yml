@@ -80,4 +80,5 @@ jobs:
           script: |
             sudo docker pull capsuleapp/capsule-server
             sudo docker stop capsule-server
+            sudo docker rm capsule-server
             sudo docker run -d --name capsule-server -p 80:80 capsuleapp/capsule-server
