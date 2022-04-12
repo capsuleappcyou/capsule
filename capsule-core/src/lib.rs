@@ -19,6 +19,7 @@ extern crate downcast_rs;
 
 pub mod user;
 pub mod application;
+pub mod settings;
 
 #[derive(Debug, Clone)]
 pub struct CoreError {
