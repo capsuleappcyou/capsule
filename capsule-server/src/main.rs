@@ -1,3 +1,4 @@
+use std::env;
 // Copyright 2022 the original author or authors.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,8 +23,22 @@ use settings::Settings;
 
 mod resources;
 pub mod settings;
+
 lazy_static! {
-    // static ref SETTINGS: Settings = Settings::new("./config").unwrap();
+    pub static ref SETTINGS: ServerContext = ServerContext::new();
+}
+
+pub struct ServerContext {
+    settings: Settings,
+}
+
+impl ServerContext {
+    pub fn new() -> Self {
+        let config_file = env::var("CAPSULE_CONFIG_FILE").unwrap_or_else(|_| "./config".into());
+        Self {
+            settings: Settings::new(config_file.as_str()).unwrap()
+        }
+    }
 }
 
 #[actix_web::main]
