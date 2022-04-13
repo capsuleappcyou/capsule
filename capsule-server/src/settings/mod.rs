@@ -18,32 +18,32 @@ use serde::Deserialize;
 
 #[derive(Debug, Deserialize)]
 #[allow(unused)]
-struct Server {
-    listen_addr: String,
-    listen_port: u32,
+pub struct Server {
+    pub listen_addr: String,
+    pub listen_port: u16,
 }
 
 #[derive(Debug, Deserialize)]
 #[allow(unused)]
-struct App {
-    base_dir: String,
+pub struct App {
+    pub base_dir: String,
 }
 
 #[derive(Debug, Deserialize)]
 #[allow(unused)]
-struct GitRepo {
-    base_dir: String,
-    domain_name: String,
-    port: u32,
-    scheme: String,
+pub struct GitRepo {
+    pub base_dir: String,
+    pub domain_name: String,
+    pub port: u16,
+    pub scheme: String,
 }
 
 #[derive(Debug, Deserialize)]
 #[allow(unused)]
 pub struct Settings {
-    app: App,
-    server: Server,
-    git_repo: GitRepo,
+    pub app: App,
+    pub server: Server,
+    pub git_repo: GitRepo,
 }
 
 impl Settings {
@@ -62,7 +62,7 @@ impl Settings {
 
 #[cfg(test)]
 mod tests {
-    use crate::settings::Settings;
+    use crate::Settings;
 
     #[test]
     fn should_read_app_config() {

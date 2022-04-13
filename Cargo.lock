@@ -362,7 +362,9 @@ version = "0.1.0"
 dependencies = [
  "actix-web",
  "capsule-core",
+ "config",
  "git2",
+ "lazy_static",
  "serde",
  "serde_json",
  "test-tool",
