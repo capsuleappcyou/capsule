@@ -25,7 +25,7 @@ mod resources;
 pub mod settings;
 
 lazy_static! {
-    pub static ref SETTINGS: ServerContext = ServerContext::new();
+    pub static ref CONTEXT: ServerContext = ServerContext::new();
 }
 
 pub struct ServerContext {
@@ -43,11 +43,12 @@ impl ServerContext {
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-    // let bind_addr = &SETTINGS.server.listen_addr;
-    // let bind_port = &SETTINGS.server.listen_port;
+    let bind_addr = &CONTEXT.settings.server.listen_addr;
+    let bind_port = &CONTEXT.settings.server.listen_port;
+
     HttpServer::new(|| App::new()
         .service(application::create_application))
-        .bind((IpAddr::from_str("::").unwrap(), 80))?
+        .bind((IpAddr::from_str(bind_addr.as_str()).unwrap(), *bind_port))?
         .run()
         .await
 }

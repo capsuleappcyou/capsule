@@ -18,6 +18,8 @@ use serde::{Deserialize, Serialize};
 
 use capsule_core::application::Application;
 
+use crate::CONTEXT;
+
 #[derive(Deserialize, Serialize)]
 pub struct ApplicationCreateRequest {
     name: Option<String>,
@@ -44,7 +46,6 @@ pub async fn create_application(request: web::Json<ApplicationCreateRequest>) ->
         request.name.clone(), "capsule".to_string(), OsString::from("/tmp/capsule/"));
 
     application.initialize_git_repository();
-
     let response = ApplicationCreateResponse {
         name: application.name.clone(),
         url: format!("https://{}.capsuleapp.cyou", application.name.clone()),
