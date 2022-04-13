@@ -14,6 +14,7 @@
 use std::env;
 
 use config::{Config, ConfigError, Environment, File};
+use lazy_static::lazy_static;
 use serde::Deserialize;
 
 #[derive(Debug, Deserialize)]
