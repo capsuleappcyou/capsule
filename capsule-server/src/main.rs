@@ -11,12 +11,10 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-use std::env;
 use std::net::IpAddr;
 use std::str::FromStr;
 
 use actix_web::{App, HttpServer};
-use lazy_static::lazy_static;
 
 use resources::application;
 use settings::Settings;
