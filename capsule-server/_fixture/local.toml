@@ -1,4 +1,7 @@
 [app]
+domain_name = "capsuleapp.cyou"
+port = 443
+scheme = "https"
 
 [server]
 listen_addr = "::"

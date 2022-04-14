@@ -27,7 +27,7 @@ pub struct ServerContext {
 
 impl ServerContext {
     pub fn new() -> Self {
-        let config_file = env::var("CAPSULE_CONFIG_FILE").unwrap_or_else(|_| "./config".into());
+        let config_file = env::var("CAPSULE_CONFIG_DIR").unwrap_or_else(|_| "./config".into());
         Self {
             settings: Settings::new(config_file.as_str()).unwrap()
         }

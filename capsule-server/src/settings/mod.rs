@@ -26,6 +26,9 @@ pub struct Server {
 #[derive(Debug, Deserialize)]
 #[allow(unused)]
 pub struct App {
+    pub domain_name: String,
+    pub port: u16,
+    pub scheme: String,
 }
 
 #[derive(Debug, Deserialize)]
@@ -65,7 +68,7 @@ mod tests {
 
     #[test]
     fn should_read_server_config() {
-        let settings = Settings::new("../config").unwrap();
+        let settings = Settings::new("./_fixture").unwrap();
 
         assert_eq!(80, settings.server.listen_port);
         assert_eq!("::", settings.server.listen_addr);
@@ -73,11 +76,20 @@ mod tests {
 
     #[test]
     fn should_read_git_repo_config() {
-        let settings = Settings::new("../config").unwrap();
+        let settings = Settings::new("./_fixture").unwrap();
 
         assert_eq!(80, settings.git_repo.port);
         assert_eq!("git.capsuleapp.cyou", settings.git_repo.domain_name);
-        assert_eq!("http", settings.git_repo.scheme);
+        assert_eq!("https", settings.git_repo.scheme);
         assert_eq!("/capsule/git", settings.git_repo.base_dir);
+    }
+
+    #[test]
+    fn should_read_app_config() {
+        let settings = Settings::new("./_fixture").unwrap();
+
+        assert_eq!(80, settings.app.port);
+        assert_eq!("capsuleapp.cyou", settings.app.domain_name);
+        assert_eq!("https", settings.app.scheme);
     }
 }

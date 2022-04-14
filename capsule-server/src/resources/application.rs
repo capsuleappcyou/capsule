@@ -56,9 +56,18 @@ pub async fn create_application(request: web::Json<ApplicationCreateRequest>) ->
         _ => format!("{}://{}/{}.git:{}", scheme, domain_name, application.name.clone(), port)
     };
 
+    let scheme = &CONTEXT.settings.app.scheme;
+    let domain_name = &CONTEXT.settings.app.domain_name;
+    let port = &CONTEXT.settings.app.port;
+
+    let app_url = match *port {
+        80 | 443 => format!("{}://{}.{}", scheme, application.name.clone(), domain_name),
+        _ => format!("{}://{}.{}:{}", scheme, application.name.clone(), domain_name, port),
+    };
+
     let response = ApplicationCreateResponse {
         name: application.name.clone(),
-        url: format!("https://{}.capsuleapp.cyou", application.name.clone()),
+        url: app_url,
         git_repo: git_repo_url,
     };
 
@@ -76,7 +85,8 @@ mod tests {
 
     #[actix_web::test]
     async fn should_201_if_create_application_successfully() {
-        std::env::set_var("CAPSULE_CONFIG_FILE", "./_fixture/");
+        std::env::set_var("CAPSULE_CONFIG_DIR", "./_fixture/");
+        std::env::set_var("CAPSULE_ENV", "default");
 
         let app =
             test::init_service(App::new().service(create_application))
@@ -93,7 +103,9 @@ mod tests {
 
     #[actix_web::test]
     async fn should_return_application_information_if_create_successfully() {
-        std::env::set_var("CAPSULE_CONFIG_FILE", "./_fixture");
+        std::env::set_var("CAPSULE_CONFIG_DIR", "./_fixture");
+        std::env::set_var("CAPSULE_ENV", "default");
+
         let app =
             test::init_service(App::new().service(create_application))
                 .await;
@@ -117,7 +129,33 @@ mod tests {
 
     #[actix_web::test]
     async fn should_not_contains_port_if_git_repo_url_port_is_443() {
-        std::env::set_var("CAPSULE_CONFIG_FILE", "./_fixture");
+        std::env::set_var("CAPSULE_CONFIG_DIR", "./_fixture");
+        std::env::set_var("CAPSULE_ENV", "local");
+
+        let app =
+            test::init_service(App::new().service(create_application))
+                .await;
+
+        let req = test::TestRequest::post()
+            .uri("/applications")
+            .set_json(ApplicationCreateRequest { name: Some("first_capsule_application".to_string()) })
+            .to_request();
+
+        let resp = app.call(req).await.unwrap();
+        let expect = ApplicationCreateResponse {
+            name: "first_capsule_application".to_string(),
+            url: "https://first_capsule_application.capsuleapp.cyou".to_string(),
+            git_repo: "https://git.capsuleapp.cyou/first_capsule_application.git".to_string(),
+        };
+        let expect_json = serde_json::to_string(&expect).unwrap();
+
+        let body = test::read_body(resp).await;
+        assert_eq!(actix_web::web::Bytes::from(expect_json), body)
+    }
+
+    #[actix_web::test]
+    async fn should_not_contains_port_if_app_url_port_is_443() {
+        std::env::set_var("CAPSULE_CONFIG_DIR", "./_fixture");
         std::env::set_var("CAPSULE_ENV", "local");
 
         let app =
@@ -143,7 +181,8 @@ mod tests {
 
     #[actix_web::test]
     async fn should_create_application_git_bare_repo() {
-        std::env::set_var("CAPSULE_CONFIG_FILE", "./_fixture");
+        std::env::set_var("CAPSULE_CONFIG_DIR", "./_fixture");
+        std::env::set_var("CAPSULE_ENV", "default");
 
         let app =
             test::init_service(App::new().service(create_application))
