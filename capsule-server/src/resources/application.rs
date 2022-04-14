@@ -47,31 +47,35 @@ pub async fn create_application(request: web::Json<ApplicationCreateRequest>) ->
 
     application.initialize_git_repository();
 
-    let scheme = &CONTEXT.settings.git_repo.scheme;
-    let domain_name = &CONTEXT.settings.git_repo.domain_name;
-    let port = &CONTEXT.settings.git_repo.port;
-
-    let git_repo_url = match *port {
-        80 | 443 => format!("{}://{}/{}.git", scheme, domain_name, application.name.clone()),
-        _ => format!("{}://{}/{}.git:{}", scheme, domain_name, application.name.clone(), port)
+    let response = ApplicationCreateResponse {
+        name: application.name.clone(),
+        url: app_url(&application),
+        git_repo: git_repo_url(&application),
     };
 
+    (web::Json(response), http::StatusCode::CREATED)
+}
+
+fn app_url(application: &Application) -> String {
     let scheme = &CONTEXT.settings.app.scheme;
     let domain_name = &CONTEXT.settings.app.domain_name;
     let port = &CONTEXT.settings.app.port;
 
-    let app_url = match *port {
+    match *port {
         80 | 443 => format!("{}://{}.{}", scheme, application.name.clone(), domain_name),
         _ => format!("{}://{}.{}:{}", scheme, application.name.clone(), domain_name, port),
-    };
+    }
+}
 
-    let response = ApplicationCreateResponse {
-        name: application.name.clone(),
-        url: app_url,
-        git_repo: git_repo_url,
-    };
+fn git_repo_url(application: &Application) -> String {
+    let scheme = &CONTEXT.settings.git_repo.scheme;
+    let domain_name = &CONTEXT.settings.git_repo.domain_name;
+    let port = &CONTEXT.settings.git_repo.port;
 
-    (web::Json(response), http::StatusCode::CREATED)
+    match *port {
+        80 | 443 => format!("{}://{}/{}.git", scheme, domain_name, application.name.clone()),
+        _ => format!("{}://{}/{}.git:{}", scheme, domain_name, application.name.clone(), port)
+    }
 }
 
 #[cfg(test)]
