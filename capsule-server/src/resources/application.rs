@@ -42,8 +42,6 @@ impl Default for ApplicationCreateRequest {
 
 #[post("/applications")]
 pub async fn create_application(request: web::Json<ApplicationCreateRequest>) -> impl Responder {
-    let base_dir = &CONTEXT.settings.app.base_dir;
-
     let application = Application::new(
         request.name.clone(), "capsule".to_string(), OsString::from("/tmp/capsule/"));
 

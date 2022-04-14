@@ -26,7 +26,6 @@ pub struct Server {
 #[derive(Debug, Deserialize)]
 #[allow(unused)]
 pub struct App {
-    pub base_dir: String,
 }
 
 #[derive(Debug, Deserialize)]
@@ -63,13 +62,6 @@ impl Settings {
 #[cfg(test)]
 mod tests {
     use crate::Settings;
-
-    #[test]
-    fn should_read_app_config() {
-        let settings = Settings::new("../config").unwrap();
-
-        assert_eq!("/capsule/apps", settings.app.base_dir);
-    }
 
     #[test]
     fn should_read_server_config() {
