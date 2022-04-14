@@ -87,129 +87,134 @@ mod tests {
 
     use super::*;
 
-    #[actix_web::test]
-    async fn should_201_if_create_application_successfully() {
-        std::env::set_var("CAPSULE_CONFIG_DIR", "./_fixture/");
-        std::env::set_var("CAPSULE_ENV", "default");
+    #[cfg(test)]
+    mod create_application {
+        use super::*;
 
-        let app =
-            test::init_service(App::new().service(create_application))
-                .await;
+        #[actix_web::test]
+        async fn should_201_if_create_application_successfully() {
+            std::env::set_var("CAPSULE_CONFIG_DIR", "./_fixture/");
+            std::env::set_var("CAPSULE_ENV", "default");
 
-        let req = test::TestRequest::post()
-            .uri("/applications")
-            .set_json(ApplicationCreateRequest::default())
-            .to_request();
+            let app =
+                test::init_service(App::new().service(create_application))
+                    .await;
 
-        let resp = app.call(req).await.unwrap();
-        assert_eq!(resp.status(), http::StatusCode::CREATED);
-    }
+            let req = test::TestRequest::post()
+                .uri("/applications")
+                .set_json(ApplicationCreateRequest::default())
+                .to_request();
 
-    #[actix_web::test]
-    async fn should_return_application_information_if_create_successfully() {
-        std::env::set_var("CAPSULE_CONFIG_DIR", "./_fixture");
-        std::env::set_var("CAPSULE_ENV", "default");
+            let resp = app.call(req).await.unwrap();
+            assert_eq!(resp.status(), http::StatusCode::CREATED);
+        }
 
-        let app =
-            test::init_service(App::new().service(create_application))
-                .await;
+        #[actix_web::test]
+        async fn should_return_application_information_if_create_successfully() {
+            std::env::set_var("CAPSULE_CONFIG_DIR", "./_fixture");
+            std::env::set_var("CAPSULE_ENV", "default");
 
-        let req = test::TestRequest::post()
-            .uri("/applications")
-            .set_json(ApplicationCreateRequest { name: Some("first_capsule_application".to_string()) })
-            .to_request();
+            let app =
+                test::init_service(App::new().service(create_application))
+                    .await;
 
-        let resp = app.call(req).await.unwrap();
-        let expect = ApplicationCreateResponse {
-            name: "first_capsule_application".to_string(),
-            url: "https://first_capsule_application.capsuleapp.cyou".to_string(),
-            git_repo: "https://git.capsuleapp.cyou/first_capsule_application.git".to_string(),
-        };
-        let expect_json = serde_json::to_string(&expect).unwrap();
+            let req = test::TestRequest::post()
+                .uri("/applications")
+                .set_json(ApplicationCreateRequest { name: Some("first_capsule_application".to_string()) })
+                .to_request();
 
-        let body = test::read_body(resp).await;
-        assert_eq!(actix_web::web::Bytes::from(expect_json), body);
-    }
+            let resp = app.call(req).await.unwrap();
+            let expect = ApplicationCreateResponse {
+                name: "first_capsule_application".to_string(),
+                url: "https://first_capsule_application.capsuleapp.cyou".to_string(),
+                git_repo: "https://git.capsuleapp.cyou/first_capsule_application.git".to_string(),
+            };
+            let expect_json = serde_json::to_string(&expect).unwrap();
 
-    #[actix_web::test]
-    async fn should_not_contains_port_if_git_repo_url_port_is_443() {
-        std::env::set_var("CAPSULE_CONFIG_DIR", "./_fixture");
-        std::env::set_var("CAPSULE_ENV", "local");
+            let body = test::read_body(resp).await;
+            assert_eq!(actix_web::web::Bytes::from(expect_json), body);
+        }
 
-        let app =
-            test::init_service(App::new().service(create_application))
-                .await;
+        #[actix_web::test]
+        async fn should_not_contains_port_if_git_repo_url_port_is_443() {
+            std::env::set_var("CAPSULE_CONFIG_DIR", "./_fixture");
+            std::env::set_var("CAPSULE_ENV", "local");
 
-        let req = test::TestRequest::post()
-            .uri("/applications")
-            .set_json(ApplicationCreateRequest { name: Some("first_capsule_application".to_string()) })
-            .to_request();
+            let app =
+                test::init_service(App::new().service(create_application))
+                    .await;
 
-        let resp = app.call(req).await.unwrap();
-        let expect = ApplicationCreateResponse {
-            name: "first_capsule_application".to_string(),
-            url: "https://first_capsule_application.capsuleapp.cyou".to_string(),
-            git_repo: "https://git.capsuleapp.cyou/first_capsule_application.git".to_string(),
-        };
-        let expect_json = serde_json::to_string(&expect).unwrap();
+            let req = test::TestRequest::post()
+                .uri("/applications")
+                .set_json(ApplicationCreateRequest { name: Some("first_capsule_application".to_string()) })
+                .to_request();
 
-        let body = test::read_body(resp).await;
-        assert_eq!(actix_web::web::Bytes::from(expect_json), body)
-    }
+            let resp = app.call(req).await.unwrap();
+            let expect = ApplicationCreateResponse {
+                name: "first_capsule_application".to_string(),
+                url: "https://first_capsule_application.capsuleapp.cyou".to_string(),
+                git_repo: "https://git.capsuleapp.cyou/first_capsule_application.git".to_string(),
+            };
+            let expect_json = serde_json::to_string(&expect).unwrap();
 
-    #[actix_web::test]
-    async fn should_not_contains_port_if_app_url_port_is_443() {
-        std::env::set_var("CAPSULE_CONFIG_DIR", "./_fixture");
-        std::env::set_var("CAPSULE_ENV", "local");
+            let body = test::read_body(resp).await;
+            assert_eq!(actix_web::web::Bytes::from(expect_json), body)
+        }
 
-        let app =
-            test::init_service(App::new().service(create_application))
-                .await;
+        #[actix_web::test]
+        async fn should_not_contains_port_if_app_url_port_is_443() {
+            std::env::set_var("CAPSULE_CONFIG_DIR", "./_fixture");
+            std::env::set_var("CAPSULE_ENV", "local");
 
-        let req = test::TestRequest::post()
-            .uri("/applications")
-            .set_json(ApplicationCreateRequest { name: Some("first_capsule_application".to_string()) })
-            .to_request();
+            let app =
+                test::init_service(App::new().service(create_application))
+                    .await;
 
-        let resp = app.call(req).await.unwrap();
-        let expect = ApplicationCreateResponse {
-            name: "first_capsule_application".to_string(),
-            url: "https://first_capsule_application.capsuleapp.cyou".to_string(),
-            git_repo: "https://git.capsuleapp.cyou/first_capsule_application.git".to_string(),
-        };
-        let expect_json = serde_json::to_string(&expect).unwrap();
+            let req = test::TestRequest::post()
+                .uri("/applications")
+                .set_json(ApplicationCreateRequest { name: Some("first_capsule_application".to_string()) })
+                .to_request();
 
-        let body = test::read_body(resp).await;
-        assert_eq!(actix_web::web::Bytes::from(expect_json), body)
-    }
+            let resp = app.call(req).await.unwrap();
+            let expect = ApplicationCreateResponse {
+                name: "first_capsule_application".to_string(),
+                url: "https://first_capsule_application.capsuleapp.cyou".to_string(),
+                git_repo: "https://git.capsuleapp.cyou/first_capsule_application.git".to_string(),
+            };
+            let expect_json = serde_json::to_string(&expect).unwrap();
 
-    #[actix_web::test]
-    async fn should_create_application_git_bare_repo() {
-        std::env::set_var("CAPSULE_CONFIG_DIR", "./_fixture");
-        std::env::set_var("CAPSULE_ENV", "default");
+            let body = test::read_body(resp).await;
+            assert_eq!(actix_web::web::Bytes::from(expect_json), body)
+        }
 
-        let app =
-            test::init_service(App::new().service(create_application))
-                .await;
+        #[actix_web::test]
+        async fn should_create_application_git_bare_repo() {
+            std::env::set_var("CAPSULE_CONFIG_DIR", "./_fixture");
+            std::env::set_var("CAPSULE_ENV", "default");
 
-        let req = test::TestRequest::post()
-            .uri("/applications")
-            .set_json(ApplicationCreateRequest::default())
-            .to_request();
+            let app =
+                test::init_service(App::new().service(create_application))
+                    .await;
 
-        let resp = app.call(req).await.unwrap();
-        let body = test::read_body(resp).await;
+            let req = test::TestRequest::post()
+                .uri("/applications")
+                .set_json(ApplicationCreateRequest::default())
+                .to_request();
 
-        let json_string = String::from_utf8(body.to_vec()).unwrap();
-        let response: ApplicationCreateResponse = serde_json::from_str(json_string.as_str()).unwrap();
+            let resp = app.call(req).await.unwrap();
+            let body = test::read_body(resp).await;
 
-        let application_git_repo_path = PathBuf::new()
-            .join("/")
-            .join("tmp")
-            .join("capsule")
-            .join(response.name)
-            .join("hooks");
+            let json_string = String::from_utf8(body.to_vec()).unwrap();
+            let response: ApplicationCreateResponse = serde_json::from_str(json_string.as_str()).unwrap();
 
-        assert!(application_git_repo_path.as_path().exists())
+            let application_git_repo_path = PathBuf::new()
+                .join("/")
+                .join("tmp")
+                .join("capsule")
+                .join(response.name)
+                .join("hooks");
+
+            assert!(application_git_repo_path.as_path().exists())
+        }
     }
 }
