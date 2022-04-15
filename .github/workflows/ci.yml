@@ -50,17 +50,17 @@ jobs:
           path: |
             ~/.cargo/registry
             ~/.cargo/git
-          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          key: cargo-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: |
-            ${{ runner.os }}-cargo-
+            cargo-
       - name: Save sccache
         uses: actions/cache@v2
         continue-on-error: false
         with:
-          path: ${{ matrix.sccache-path }}
-          key: ${{ runner.os }}-sccache-${{ hashFiles('**/Cargo.lock') }}
+          path: /home/runner/.cache/sccache
+          key: sccache-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: |
-            ${{ runner.os }}-sccache-
+            sccache-
       - name: Start sccache server
         run: sccache --start-server
       - name: Test
@@ -88,6 +88,8 @@ jobs:
         with:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
+      - name: Stop sccache server
+        run: sccache --stop-server || true
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
       - name: Build and push
@@ -97,8 +99,6 @@ jobs:
           file: ./docker/Dockerfile
           push: true
           tags: ${{ secrets.DOCKER_HUB_USERNAME }}/capsule-server:latest
-      - name: Stop sccache server
-        run: sccache --stop-server || true
       - name: Startup service on demo server
         uses: appleboy/ssh-action@master
         with:
