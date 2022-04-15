@@ -11,5 +11,5 @@ listen_port = 80
 domain_name = "git.capsuleapp.cyou"
 port = 80
 base_dir = "/capsule/git"
-scheme = "http"
+scheme = "https"
 
