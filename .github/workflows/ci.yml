@@ -88,6 +88,8 @@ jobs:
         with:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
+      - name: Print sccache stats
+        run: sccache --show-stats
       - name: Stop sccache server
         run: sccache --stop-server || true
       - name: Set up Docker Buildx
