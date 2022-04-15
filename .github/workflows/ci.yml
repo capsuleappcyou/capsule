@@ -50,17 +50,17 @@ jobs:
           path: |
             ~/.cargo/registry
             ~/.cargo/git
-          key: cargo-${{ hashFiles('**/Cargo.lock') }}
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: |
-            cargo-
+            ${{ runner.os }}-cargo-
       - name: Save sccache
         uses: actions/cache@v2
         continue-on-error: false
         with:
           path: /home/runner/.cache/sccache
-          key: sccache-${{ hashFiles('**/Cargo.lock') }}
+          key: ${{ runner.os }}-sccache-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: |
-            sccache-
+            ${{ runner.os }}-sccache-
       - name: Start sccache server
         run: sccache --start-server
       - name: Test
