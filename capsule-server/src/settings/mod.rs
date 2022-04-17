@@ -81,7 +81,7 @@ mod tests {
         assert_eq!(80, settings.git_repo.port);
         assert_eq!("git.capsuleapp.cyou", settings.git_repo.domain_name);
         assert_eq!("https", settings.git_repo.scheme);
-        assert_eq!("/capsule/git", settings.git_repo.base_dir);
+        assert_eq!("/tmp/capsule/git", settings.git_repo.base_dir);
     }
 
     #[test]

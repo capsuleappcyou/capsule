@@ -42,8 +42,10 @@ impl Default for ApplicationCreateRequest {
 
 #[post("/applications")]
 pub async fn create_application(request: web::Json<ApplicationCreateRequest>) -> impl Responder {
+    let app_base_dir = &CONTEXT.settings.git_repo.base_dir;
+
     let application = Application::new(
-        request.name.clone(), "capsule".to_string(), OsString::from("/tmp/capsule/"));
+        request.name.clone(), "capsule".to_string(), OsString::from(app_base_dir));
 
     application.initialize_git_repository();
 
@@ -89,6 +91,7 @@ mod tests {
 
     #[cfg(test)]
     mod create_application {
+        use std::path::Path;
         use super::*;
 
         #[actix_web::test]
@@ -207,14 +210,10 @@ mod tests {
             let json_string = String::from_utf8(body.to_vec()).unwrap();
             let response: ApplicationCreateResponse = serde_json::from_str(json_string.as_str()).unwrap();
 
-            let application_git_repo_path = PathBuf::new()
-                .join("/")
-                .join("tmp")
-                .join("capsule")
-                .join(response.name)
-                .join("hooks");
+            let application_git_repo_path = &CONTEXT.settings.git_repo.base_dir.as_str();
 
-            assert!(application_git_repo_path.as_path().exists())
+            println!("{}", application_git_repo_path);
+            assert!(Path::new(application_git_repo_path).exists())
         }
     }
 }
