@@ -65,14 +65,9 @@ fn app_url(application: &Application) -> String {
 }
 
 fn git_repo_url(application: &Application) -> String {
-    let scheme = &CONTEXT.settings.git_repo.scheme;
-    let domain_name = &CONTEXT.settings.git_repo.domain_name;
-    let port = &CONTEXT.settings.git_repo.port;
+    let template = &CONTEXT.settings.git_repo.url_template;
 
-    match *port {
-        80 | 443 => format!("{}://{}/{}.git", scheme, domain_name, application.name.clone()),
-        _ => format!("{}://{}/{}.git:{}", scheme, domain_name, application.name.clone(), port)
-    }
+    template.replace("{app_name}", application.name.as_str())
 }
 
 #[cfg(test)]
@@ -85,6 +80,7 @@ mod tests {
     #[cfg(test)]
     mod create_application {
         use std::path::Path;
+
         use tempdir::TempDir;
 
         use super::*;
@@ -116,37 +112,6 @@ mod tests {
         async fn should_return_application_information_if_create_successfully() {
             std::env::set_var("CAPSULE_CONFIG_DIR", "./_fixture");
             std::env::set_var("CAPSULE_ENV", "default");
-
-            let git_dir = TempDir::new("git").unwrap();
-            std::env::set_var("CAPSULE__GIT_REPO__BASE_DIR", git_dir.path().to_str().unwrap());
-
-            let app =
-                test::init_service(App::new().service(create_application))
-                    .await;
-
-            let req = test::TestRequest::post()
-                .uri("/applications")
-                .set_json(ApplicationCreateRequest { name: Some("first_capsule_application".to_string()) })
-                .to_request();
-
-            let resp = app.call(req).await.unwrap();
-            let expect = ApplicationCreateResponse {
-                name: "first_capsule_application".to_string(),
-                url: "https://first_capsule_application.capsuleapp.cyou".to_string(),
-                git_repo: "https://git.capsuleapp.cyou/first_capsule_application.git".to_string(),
-            };
-            let expect_json = serde_json::to_string(&expect).unwrap();
-
-            let body = test::read_body(resp).await;
-            assert_eq!(actix_web::web::Bytes::from(expect_json), body);
-
-            std::env::remove_var("CAPSULE__GIT_REPO__BASE_DIR");
-        }
-
-        #[actix_web::test]
-        async fn should_not_contains_port_if_git_repo_url_port_is_443() {
-            std::env::set_var("CAPSULE_CONFIG_DIR", "./_fixture");
-            std::env::set_var("CAPSULE_ENV", "local");
 
             let git_dir = TempDir::new("git").unwrap();
             std::env::set_var("CAPSULE__GIT_REPO__BASE_DIR", git_dir.path().to_str().unwrap());

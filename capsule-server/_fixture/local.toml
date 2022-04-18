@@ -6,7 +6,5 @@ listen_addr = "::"
 listen_port = 80
 
 [git_repo]
-domain_name = "git.capsuleapp.cyou"
-port = 443
-base_dir = "/tmp/capsule/git1"
-scheme = "https"
+url_template = "https://git.capsuleapp.cyou/{app_name}.git"
+base_dir = "/tmp/capsule/git"

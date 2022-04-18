@@ -32,10 +32,8 @@ pub struct App {
 #[derive(Debug, Deserialize)]
 #[allow(unused)]
 pub struct GitRepo {
+    pub url_template: String,
     pub base_dir: String,
-    pub domain_name: String,
-    pub port: u16,
-    pub scheme: String,
 }
 
 #[derive(Debug, Deserialize)]
@@ -75,10 +73,7 @@ mod tests {
     fn should_read_git_repo_config() {
         let settings = Settings::new("./_fixture").unwrap();
 
-        assert_eq!(80, settings.git_repo.port);
-        assert_eq!("git.capsuleapp.cyou", settings.git_repo.domain_name);
-        assert_eq!("https", settings.git_repo.scheme);
-        assert_eq!("/tmp/capsule/git", settings.git_repo.base_dir);
+        assert_eq!("https://git.capsuleapp.cyou/{app_name}.git", settings.git_repo.url_template);
     }
 
     #[test]
