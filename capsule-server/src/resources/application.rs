@@ -59,14 +59,9 @@ pub async fn create_application(request: web::Json<ApplicationCreateRequest>) ->
 }
 
 fn app_url(application: &Application) -> String {
-    let scheme = &CONTEXT.settings.app.scheme;
-    let domain_name = &CONTEXT.settings.app.domain_name;
-    let port = &CONTEXT.settings.app.port;
+    let template = &CONTEXT.settings.app.url_template;
 
-    match *port {
-        80 | 443 => format!("{}://{}.{}", scheme, application.name.clone(), domain_name),
-        _ => format!("{}://{}.{}:{}", scheme, application.name.clone(), domain_name, port),
-    }
+    template.replace("{app_name}", application.name.as_str())
 }
 
 fn git_repo_url(application: &Application) -> String {
@@ -82,8 +77,6 @@ fn git_repo_url(application: &Application) -> String {
 
 #[cfg(test)]
 mod tests {
-    use std::path::PathBuf;
-
     use actix_web::{App, http::{self}, test};
     use actix_web::dev::Service;
 
@@ -92,6 +85,7 @@ mod tests {
     #[cfg(test)]
     mod create_application {
         use std::path::Path;
+
         use super::*;
 
         #[actix_web::test]
@@ -212,8 +206,7 @@ mod tests {
 
             let application_git_repo_path = &CONTEXT.settings.git_repo.base_dir.as_str();
 
-            println!("{}", application_git_repo_path);
-            assert!(Path::new(application_git_repo_path).exists())
+            assert!(Path::new(application_git_repo_path).join(response.name).join("hooks").exists())
         }
     }
 }

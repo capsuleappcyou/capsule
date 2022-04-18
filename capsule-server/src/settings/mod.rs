@@ -26,9 +26,7 @@ pub struct Server {
 #[derive(Debug, Deserialize)]
 #[allow(unused)]
 pub struct App {
-    pub domain_name: String,
-    pub port: u16,
-    pub scheme: String,
+    pub url_template: String,
 }
 
 #[derive(Debug, Deserialize)]
@@ -88,8 +86,6 @@ mod tests {
     fn should_read_app_config() {
         let settings = Settings::new("./_fixture").unwrap();
 
-        assert_eq!(80, settings.app.port);
-        assert_eq!("capsuleapp.cyou", settings.app.domain_name);
-        assert_eq!("https", settings.app.scheme);
+        assert_eq!("https://{app_name}.capsuleapp.cyou", settings.app.url_template);
     }
 }

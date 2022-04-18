@@ -1,7 +1,5 @@
 [app]
-domain_name = "capsuleapp.cyou"
-port = 80
-scheme = "https"
+url_template = "https://{app_name}.capsuleapp.cyou"
 
 [server]
 listen_addr = "::"
