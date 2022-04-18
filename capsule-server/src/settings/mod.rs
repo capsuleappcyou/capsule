@@ -48,12 +48,11 @@ pub struct Settings {
 
 impl Settings {
     pub fn new(config_dir: &str) -> Result<Settings, ConfigError> {
-        let capsule_env = env::var("CAPSULE_ENV").unwrap_or_else(|_| "development".into());
+        let capsule_env = env::var("CAPSULE_ENV").unwrap_or_else(|_| "default".into());
 
         let config = Config::builder()
-            .add_source(File::with_name(&format!("{}/default", config_dir)))
             .add_source(File::with_name(&format!("{}/{}", config_dir, capsule_env)).required(false))
-            .add_source(Environment::with_prefix("CAPSULE_"))
+            .add_source(Environment::with_prefix("capsule").separator("__"))
             .build()?;
 
         config.try_deserialize()
