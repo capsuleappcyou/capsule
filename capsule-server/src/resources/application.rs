@@ -88,7 +88,7 @@ mod tests {
         #[actix_web::test]
         async fn should_201_if_create_application_successfully() {
             std::env::set_var("CAPSULE_CONFIG_DIR", "./_fixture/");
-            std::env::set_var("CAPSULE_ENV", "default");
+            std::env::set_var("CAPSULE_ENV", "default.conf");
 
             let git_dir = TempDir::new("git").unwrap();
             std::env::set_var("CAPSULE__GIT_REPO__BASE_DIR", git_dir.path().to_str().unwrap());
@@ -111,7 +111,7 @@ mod tests {
         #[actix_web::test]
         async fn should_return_application_information_if_create_successfully() {
             std::env::set_var("CAPSULE_CONFIG_DIR", "./_fixture");
-            std::env::set_var("CAPSULE_ENV", "default");
+            std::env::set_var("CAPSULE_ENV", "default.conf");
 
             let git_dir = TempDir::new("git").unwrap();
             std::env::set_var("CAPSULE__GIT_REPO__BASE_DIR", git_dir.path().to_str().unwrap());

@@ -40,7 +40,7 @@ impl Application {
                 let random_name = readable_name();
                 let random_number: u32 = rand::thread_rng().gen();
 
-                format!("{random_name}_{random_number}")
+                format!("{}_{}", random_name, random_number)
             }
         };
 
@@ -55,7 +55,6 @@ impl Application {
         let application_dir = self.get_application_dir();
 
         let result = Repository::init_bare(application_dir.as_path());
-
         match result {
             Ok(_) => Ok(application_dir.into_boxed_path()),
             Err(e) => Err(CoreError { message: e.to_string() })

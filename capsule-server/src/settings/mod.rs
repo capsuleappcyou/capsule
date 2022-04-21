@@ -46,7 +46,7 @@ pub struct Settings {
 
 impl Settings {
     pub fn new(config_dir: &str) -> Result<Settings, ConfigError> {
-        let capsule_env = env::var("CAPSULE_ENV").unwrap_or_else(|_| "default".into());
+        let capsule_env = env::var("CAPSULE_ENV").unwrap_or_else(|_| "default.conf".into());
 
         let config = Config::builder()
             .add_source(File::with_name(&format!("{}/{}", config_dir, capsule_env)).required(false))
