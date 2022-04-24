@@ -1,0 +1,12 @@
+capsule-api-server:
+  image: capsuleapp/capsule-server
+  ports:
+    - 80:80
+---
+capsule-git-server:
+  image: capsuleapp/capsule-git
+  ports:
+    - 8080:80
+  volumes:
+    - /srv/capsule/git:/srv/capsule/git
+    - /etc/htpasswd:/etc/capsule/htpasswd

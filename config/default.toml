@@ -1,10 +1,10 @@
 [app]
-url_template = "https://{app_name}.capsuleapp.cyou"
+url_template = "http://{app_name}.capsuleapp.cyou"
 
 [server]
 listen_addr = "::"
 listen_port = 80
 
 [git_repo]
-url_template = "https://git.capsuleapp.cyou/{app_name}.git"
-base_dir = "/tmp/capsule/git"
+url_template = "http://git.capsuleapp.cyou/{app_name}.git"
+base_dir = "/srv/capsule/git"

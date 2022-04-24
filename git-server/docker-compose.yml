@@ -1,0 +1,7 @@
+capsule-git:
+  image: capsule-git
+  ports:
+    - 80:80
+  volumes:
+    - /tmp/capsule/git:/srv/capsule/git
+    - /tmp/capsule/htpasswd:/etc/capsule/htpasswd

@@ -107,14 +107,3 @@ jobs:
           file: ./capsule-server/Dockerfile
           push: true
           tags: ${{ secrets.DOCKER_HUB_USERNAME }}/capsule-server:latest
-      - name: Startup service on demo server
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.HOST }}
-          username: ${{ secrets.CAPSULE_SERVER_ADMIN }}
-          key: ${{ secrets.KEY }}
-          script: |
-            sudo docker pull capsuleapp/capsule-server
-            sudo docker stop capsule-server
-            sudo docker rm capsule-server
-            sudo docker run -d --name capsule-server -p 80:80 capsuleapp/capsule-server
