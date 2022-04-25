@@ -73,7 +73,7 @@ mod tests {
     fn should_read_git_repo_config() {
         let settings = Settings::new("./_fixture").unwrap();
 
-        assert_eq!("https://git.capsuleapp.cyou/{app_name}.git", settings.git_repo.url_template);
+        assert_eq!("https://git.capsuleapp.cyou/{user_name}/{app_name}.git", settings.git_repo.url_template);
     }
 
     #[test]

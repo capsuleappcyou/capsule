@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 use std::ffi::OsString;
+use std::path::PathBuf;
 
 use actix_web::{http, post, Responder, web};
 use serde::{Deserialize, Serialize};
@@ -42,10 +43,13 @@ impl Default for ApplicationCreateRequest {
 
 #[post("/applications")]
 pub async fn create_application(request: web::Json<ApplicationCreateRequest>) -> impl Responder {
+    let user_name = "capsule".to_string();
+
     let app_base_dir = &CONTEXT.settings.git_repo.base_dir;
+    let app_path = PathBuf::new().join(&user_name).join(app_base_dir);
 
     let application = Application::new(
-        request.name.clone(), "capsule".to_string(), OsString::from(app_base_dir));
+        request.name.clone(), user_name, OsString::from(app_path));
 
     application.initialize_git_repository();
 
@@ -67,7 +71,7 @@ fn app_url(application: &Application) -> String {
 fn git_repo_url(application: &Application) -> String {
     let template = &CONTEXT.settings.git_repo.url_template;
 
-    template.replace("{app_name}", application.name.as_str())
+    template.replace("{app_name}", application.name.as_str()).replace("{user_name}", application.owner.as_str())
 }
 
 #[cfg(test)]
@@ -129,7 +133,7 @@ mod tests {
             let expect = ApplicationCreateResponse {
                 name: "first_capsule_application".to_string(),
                 url: "https://first_capsule_application.capsuleapp.cyou".to_string(),
-                git_repo: "https://git.capsuleapp.cyou/first_capsule_application.git".to_string(),
+                git_repo: "https://git.capsuleapp.cyou/capsule/first_capsule_application.git".to_string(),
             };
             let expect_json = serde_json::to_string(&expect).unwrap();
 
