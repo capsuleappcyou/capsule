@@ -71,7 +71,10 @@ fn app_url(application: &Application) -> String {
 fn git_repo_url(application: &Application) -> String {
     let template = &CONTEXT.settings.git_repo.url_template;
 
-    template.replace("{app_name}", application.name.as_str()).replace("{user_name}", application.owner.as_str())
+    let app_name = application.name.as_str();
+    let owner_name = application.owner.as_str();
+
+    template.replace("{app_name}", app_name).replace("{user_name}", owner_name)
 }
 
 #[cfg(test)]
