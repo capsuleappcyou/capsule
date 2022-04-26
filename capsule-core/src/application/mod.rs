@@ -33,7 +33,7 @@ pub struct Application {
 }
 
 impl Application {
-    pub fn new(new_name: Option<String>, owner: String, application_directory: OsString) -> Self {
+    pub fn new(new_name: Option<String>, owner: String, application_base_directory: OsString) -> Self {
         let name = match new_name {
             Some(app_name) => app_name,
             _ => {
@@ -44,10 +44,13 @@ impl Application {
             }
         };
 
+        let app_path = PathBuf::new().join(application_base_directory).join(&owner).join(format!("{}.git", &name));
+        let application_directory = OsString::from(app_path.as_path().to_str().unwrap());
+
         Self {
             name,
             owner,
-            application_directory,
+            application_directory
         }
     }
 
@@ -77,9 +80,7 @@ impl Application {
     }
 
     fn get_application_dir(&self) -> PathBuf {
-        return PathBuf::new()
-            .join(self.application_directory.as_os_str())
-            .join(self.name.as_str());
+        return PathBuf::new().join(self.application_directory.as_os_str())
     }
 }
 

@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 use std::ffi::OsString;
-use std::path::PathBuf;
 
 use actix_web::{http, post, Responder, web};
 use serde::{Deserialize, Serialize};
@@ -46,10 +45,9 @@ pub async fn create_application(request: web::Json<ApplicationCreateRequest>) ->
     let user_name = "capsule".to_string();
 
     let app_base_dir = &CONTEXT.settings.git_repo.base_dir;
-    let app_path = PathBuf::new().join(app_base_dir).join(&user_name);
 
     let application = Application::new(
-        request.name.clone(), user_name, OsString::from(app_path));
+        request.name.clone(), user_name, OsString::from(app_base_dir));
 
     application.initialize_git_repository();
 
@@ -171,7 +169,7 @@ mod tests {
 
             let application_git_repo_path = &CONTEXT.settings.git_repo.base_dir.as_str();
 
-            assert!(Path::new(application_git_repo_path).join("capsule").join(response.name).join("hooks").exists());
+            assert!(Path::new(application_git_repo_path).join("capsule").join(format!("{}.git", response.name)).join("hooks").exists());
 
             std::env::remove_var("CAPSULE__GIT_REPO__BASE_DIR");
         }
