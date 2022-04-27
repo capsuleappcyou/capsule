@@ -58,7 +58,7 @@ impl Application {
         format!("{}_{}", random_name, random_number)
     }
 
-    pub fn initialize_git_repository_foo(&self, git_server: impl GitService) -> Result<Box<Path>, CoreError> {
+    pub fn initialize_git_repository(&self, git_server: impl GitService) -> Result<Box<Path>, CoreError> {
         let application_dir = self.get_application_dir();
 
         let result = Repository::init_bare(application_dir.as_path());
@@ -112,7 +112,7 @@ mod tests {
         let application = create_application(Some("first_application".to_string()));
         let git_server = DummyGitService;
 
-        let result = application.initialize_git_repository_foo(git_server);
+        let result = application.initialize_git_repository(git_server);
         assert_eq!(result.is_ok(), true);
 
         let project_path = result.ok().unwrap();
@@ -124,7 +124,7 @@ mod tests {
         let application = create_application(Some("first_application".to_string()));
         let git_server = DummyGitService;
 
-        application.initialize_git_repository_foo(git_server).expect("could not initialize git repo");
+        application.initialize_git_repository(git_server).expect("could not initialize git repo");
 
         let result = application.install_git_hooks("./_fixture/git_hooks/", &vec!["TEST_HOOKS"]);
         assert_eq!(result.is_ok(), true);

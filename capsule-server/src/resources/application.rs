@@ -61,7 +61,7 @@ pub async fn create_application(request: web::Json<ApplicationCreateRequest>) ->
     let application = Application::new(
         request.name.clone(), user_name, OsString::from(app_base_dir));
 
-    application.initialize_git_repository_foo(git_server);
+    application.initialize_git_repository(git_server);
 
     let response = ApplicationCreateResponse {
         name: application.name.clone(),
