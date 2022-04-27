@@ -16,9 +16,11 @@ use std::ffi::OsString;
 use actix_web::{http, post, Responder, web};
 use serde::{Deserialize, Serialize};
 
-use capsule_core::application::Application;
+use capsule_core::application::{Application, GitRepository, GitService};
+use capsule_core::CoreError;
 
 use crate::context::CONTEXT;
+use crate::settings::GitRepo;
 
 #[derive(Deserialize, Serialize)]
 pub struct ApplicationCreateRequest {
@@ -40,16 +42,26 @@ impl Default for ApplicationCreateRequest {
     }
 }
 
+struct DefaultGitService;
+
+impl GitService for DefaultGitService {
+    fn create_repo(owner: &str, app_name: &str) -> Result<GitRepository, CoreError> {
+        todo!()
+    }
+}
+
 #[post("/applications")]
 pub async fn create_application(request: web::Json<ApplicationCreateRequest>) -> impl Responder {
     let user_name = "capsule".to_string();
 
     let app_base_dir = &CONTEXT.settings.git_repo.base_dir;
 
+    let git_server = DefaultGitService;
+
     let application = Application::new(
         request.name.clone(), user_name, OsString::from(app_base_dir));
 
-    application.initialize_git_repository();
+    application.initialize_git_repository_foo(git_server);
 
     let response = ApplicationCreateResponse {
         name: application.name.clone(),

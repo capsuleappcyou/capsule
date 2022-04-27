@@ -20,11 +20,13 @@ use git2::Repository;
 use rand::Rng;
 
 pub use implementation::postgres::postgres_repository::PostgresApplicationRepository;
+pub use crate::application::git::{GitService, GitRepository};
 
 use crate::CoreError;
 
 mod repository;
 mod implementation;
+mod git;
 
 pub struct Application {
     pub name: String,
@@ -56,7 +58,7 @@ impl Application {
         format!("{}_{}", random_name, random_number)
     }
 
-    pub fn initialize_git_repository(&self) -> Result<Box<Path>, CoreError> {
+    pub fn initialize_git_repository_foo(&self, git_server: impl GitService) -> Result<Box<Path>, CoreError> {
         let application_dir = self.get_application_dir();
 
         let result = Repository::init_bare(application_dir.as_path());
@@ -94,12 +96,23 @@ mod tests {
     use tempdir::TempDir;
 
     use crate::application::Application;
+    use crate::application::git::{GitService, GitRepository};
+    use crate::CoreError;
+
+    struct DummyGitService;
+
+    impl GitService for DummyGitService {
+        fn create_repo(owner: &str, app_name: &str) -> Result<GitRepository, CoreError> {
+            todo!()
+        }
+    }
 
     #[test]
     fn should_initialize_git_repository() {
         let application = create_application(Some("first_application".to_string()));
+        let git_server = DummyGitService;
 
-        let result = application.initialize_git_repository();
+        let result = application.initialize_git_repository_foo(git_server);
         assert_eq!(result.is_ok(), true);
 
         let project_path = result.ok().unwrap();
@@ -109,8 +122,9 @@ mod tests {
     #[test]
     fn should_install_git_hooks_to_application() {
         let application = create_application(Some("first_application".to_string()));
+        let git_server = DummyGitService;
 
-        application.initialize_git_repository().expect("could not initialize git repo");
+        application.initialize_git_repository_foo(git_server).expect("could not initialize git repo");
 
         let result = application.install_git_hooks("./_fixture/git_hooks/", &vec!["TEST_HOOKS"]);
         assert_eq!(result.is_ok(), true);
