@@ -33,15 +33,10 @@ pub struct Application {
 }
 
 impl Application {
-    pub fn new(new_name: Option<String>, owner: String, application_base_directory: OsString) -> Self {
-        let name = match new_name {
+    pub fn new(new_app_name: Option<String>, owner: String, application_base_directory: OsString) -> Self {
+        let name = match new_app_name {
             Some(app_name) => app_name,
-            _ => {
-                let random_name = readable_name();
-                let random_number: u32 = rand::thread_rng().gen();
-
-                format!("{}_{}", random_name, random_number)
-            }
+            _ => Self::random_name(),
         };
 
         let app_path = PathBuf::new().join(application_base_directory).join(&owner).join(format!("{}.git", &name));
@@ -52,6 +47,13 @@ impl Application {
             owner,
             application_directory,
         }
+    }
+
+    fn random_name() -> String {
+        let random_name = readable_name();
+        let random_number: u32 = rand::thread_rng().gen();
+
+        format!("{}_{}", random_name, random_number)
     }
 
     pub fn initialize_git_repository(&self) -> Result<Box<Path>, CoreError> {
