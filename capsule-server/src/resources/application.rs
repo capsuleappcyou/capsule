@@ -92,11 +92,11 @@ mod tests {
 
         #[actix_web::test]
         async fn should_201_if_create_application_successfully() {
-            std::env::set_var("CAPSULE_CONFIG_DIR", "./_fixture/");
-            std::env::set_var("CAPSULE_ENV", "default.conf");
+            std::env::set_var("CAPSULE_CONFIG_SERVER_DIR", "./_fixture/");
+            std::env::set_var("CAPSULE_SERVER_CONFIG_FILE", "capsule-server.toml");
 
             let git_dir = TempDir::new("git").unwrap();
-            std::env::set_var("CAPSULE__GIT_REPO__BASE_DIR", git_dir.path().to_str().unwrap());
+            std::env::set_var("CAPSULE_SERVER__GIT_REPO__BASE_DIR", git_dir.path().to_str().unwrap());
 
             let app =
                 test::init_service(App::new().service(create_application))
@@ -110,16 +110,16 @@ mod tests {
             let resp = app.call(req).await.unwrap();
             assert_eq!(resp.status(), http::StatusCode::CREATED);
 
-            std::env::remove_var("CAPSULE__GIT_REPO__BASE_DIR");
+            std::env::remove_var("CAPSULE_SERVER__GIT_REPO__BASE_DIR");
         }
 
         #[actix_web::test]
         async fn should_return_application_information_if_create_successfully() {
-            std::env::set_var("CAPSULE_CONFIG_DIR", "./_fixture");
-            std::env::set_var("CAPSULE_ENV", "default.conf");
+            std::env::set_var("CAPSULE_CONFIG_SERVER_DIR", "./_fixture");
+            std::env::set_var("CAPSULE_SERVER_CONFIG_FILE", "capsule-server.toml");
 
             let git_dir = TempDir::new("git").unwrap();
-            std::env::set_var("CAPSULE__GIT_REPO__BASE_DIR", git_dir.path().to_str().unwrap());
+            std::env::set_var("CAPSULE_SERVER__GIT_REPO__BASE_DIR", git_dir.path().to_str().unwrap());
 
             let app =
                 test::init_service(App::new().service(create_application))
@@ -141,16 +141,16 @@ mod tests {
             let body = test::read_body(resp).await;
             assert_eq!(actix_web::web::Bytes::from(expect_json), body);
 
-            std::env::remove_var("CAPSULE__GIT_REPO__BASE_DIR");
+            std::env::remove_var("CAPSULE_SERVER__GIT_REPO__BASE_DIR");
         }
 
         #[actix_web::test]
         async fn should_create_application_git_bare_repo() {
-            std::env::set_var("CAPSULE_CONFIG_DIR", "./_fixture");
-            std::env::set_var("CAPSULE_ENV", "local");
+            std::env::set_var("CAPSULE_CONFIG_SERVER_DIR", "./_fixture");
+            std::env::set_var("CAPSULE_SERVER_CONFIG_FILE", "capsule-server-test.toml");
 
             let git_dir = TempDir::new("git").unwrap();
-            std::env::set_var("CAPSULE__GIT_REPO__BASE_DIR", git_dir.path().to_str().unwrap());
+            std::env::set_var("CAPSULE_SERVER__GIT_REPO__BASE_DIR", git_dir.path().to_str().unwrap());
 
             let app =
                 test::init_service(App::new().service(create_application))
@@ -171,7 +171,7 @@ mod tests {
 
             assert!(Path::new(application_git_repo_path).join("capsule").join(format!("{}.git", response.name)).join("hooks").exists());
 
-            std::env::remove_var("CAPSULE__GIT_REPO__BASE_DIR");
+            std::env::remove_var("CAPSULE_SERVER__GIT_REPO__BASE_DIR");
         }
     }
 }

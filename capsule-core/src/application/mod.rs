@@ -50,7 +50,7 @@ impl Application {
         Self {
             name,
             owner,
-            application_directory
+            application_directory,
         }
     }
 
@@ -80,7 +80,7 @@ impl Application {
     }
 
     fn get_application_dir(&self) -> PathBuf {
-        return PathBuf::new().join(self.application_directory.as_os_str())
+        return PathBuf::new().join(self.application_directory.as_os_str());
     }
 }
 

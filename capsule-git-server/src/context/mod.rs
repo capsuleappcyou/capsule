@@ -27,9 +27,9 @@ lazy_static! {
 
 impl GitServerContext {
     pub fn new() -> Self {
-        let config_file = env::var("CAPSULE_GIT_CONFIG_DIR").unwrap_or_else(|_| "./config".into());
+        let config_dir = env::var("CAPSULE_GIT_CONFIG_DIR").unwrap_or_else(|_| "./config".into());
         Self {
-            settings: Settings::new(config_file.as_str()).unwrap()
+            settings: Settings::new(config_dir.as_str()).unwrap()
         }
     }
 }
