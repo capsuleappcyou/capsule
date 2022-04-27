@@ -1,0 +1,7 @@
+[ctl_server]
+listen_addr = "::"
+listen_port = 7892
+
+[git_repo]
+url_template = "https://git.capsuleapp.cyou/{user_name}/{app_name}.git"
+directory = "/tmp/capsule/git"

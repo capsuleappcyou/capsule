@@ -2,4 +2,5 @@
 members = [
     "capsule-server",
     "capsule-core",
+    "capsule-git-server"
 ]

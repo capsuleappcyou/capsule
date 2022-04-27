@@ -357,6 +357,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "capsule-git-server"
+version = "0.1.0"
+dependencies = [
+ "actix-web",
+ "config",
+ "git2",
+ "lazy_static",
+ "serde",
+ "serde_json",
+ "tempdir",
+]
+
+[[package]]
 name = "capsule-server"
 version = "0.1.0"
 dependencies = [

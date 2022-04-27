@@ -18,39 +18,33 @@ use serde::Deserialize;
 
 #[derive(Debug, Deserialize)]
 #[allow(unused)]
-pub struct Server {
+pub struct CtlServer {
     pub listen_addr: String,
     pub listen_port: u16,
 }
 
-#[derive(Debug, Deserialize)]
-#[allow(unused)]
-pub struct App {
-    pub url_template: String,
-}
 
 #[derive(Debug, Deserialize)]
 #[allow(unused)]
 pub struct GitRepo {
     pub url_template: String,
-    pub base_dir: String,
+    pub directory: String,
 }
 
 #[derive(Debug, Deserialize)]
 #[allow(unused)]
 pub struct Settings {
-    pub app: App,
-    pub server: Server,
+    pub ctl_server: CtlServer,
     pub git_repo: GitRepo,
 }
 
 impl Settings {
     pub fn new(config_dir: &str) -> Result<Settings, ConfigError> {
-        let capsule_env = env::var("CAPSULE_ENV").unwrap_or_else(|_| "default".into());
+        let capsule_git_env = env::var("CAPSULE_GIT_ENV").unwrap_or_else(|_| "default".into());
 
         let config = Config::builder()
-            .add_source(File::with_name(&format!("{}/{}", config_dir, capsule_env)).required(false))
-            .add_source(Environment::with_prefix("capsule").separator("__"))
+            .add_source(File::with_name(&format!("{}/{}", config_dir, capsule_git_env)).required(false))
+            .add_source(Environment::with_prefix("capsule_git").separator("__"))
             .build()?;
 
         config.try_deserialize()
@@ -59,27 +53,21 @@ impl Settings {
 
 #[cfg(test)]
 mod tests {
-    use crate::Settings;
+    use crate::settings::Settings;
 
     #[test]
-    fn should_read_server_config() {
+    fn should_read_ctl_server_config() {
         let settings = Settings::new("./_fixture").unwrap();
 
-        assert_eq!(80, settings.server.listen_port);
-        assert_eq!("::", settings.server.listen_addr);
+        assert_eq!(settings.ctl_server.listen_addr, "::");
+        assert_eq!(settings.ctl_server.listen_port, 7892);
     }
 
     #[test]
     fn should_read_git_repo_config() {
         let settings = Settings::new("./_fixture").unwrap();
 
-        assert_eq!("https://git.capsuleapp.cyou/{user_name}/{app_name}.git", settings.git_repo.url_template);
-    }
-
-    #[test]
-    fn should_read_app_config() {
-        let settings = Settings::new("./_fixture").unwrap();
-
-        assert_eq!("https://{app_name}.capsuleapp.cyou", settings.app.url_template);
+        assert_eq!(settings.git_repo.url_template, "https://git.capsuleapp.cyou/{user_name}/{app_name}.git");
+        assert_eq!(settings.git_repo.directory, "/tmp/capsule/git");
     }
 }
