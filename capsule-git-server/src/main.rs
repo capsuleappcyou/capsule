@@ -15,3 +15,5 @@ mod context;
 mod settings;
 mod repo;
 
+fn main() {}
+
