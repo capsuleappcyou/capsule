@@ -40,11 +40,11 @@ pub struct Settings {
 
 impl Settings {
     pub fn new(config_dir: &str) -> Result<Settings, ConfigError> {
-        let capsule_git_env = env::var("CAPSULE_GIT_ENV").unwrap_or_else(|_| "default".into());
+        let capsule_git_env = env::var("CAPSULE_GIT_CTL_CONFIG_FILE").unwrap_or_else(|_| "capsule-git-server-ctl.toml".into());
 
         let config = Config::builder()
             .add_source(File::with_name(&format!("{}/{}", config_dir, capsule_git_env)).required(false))
-            .add_source(Environment::with_prefix("capsule_git").separator("__"))
+            .add_source(Environment::with_prefix("capsule_git_ctl").separator("__"))
             .build()?;
 
         config.try_deserialize()
