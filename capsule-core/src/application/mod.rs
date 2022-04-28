@@ -20,8 +20,8 @@ use git2::Repository;
 use rand::Rng;
 
 pub use implementation::postgres::postgres_repository::PostgresApplicationRepository;
-pub use crate::application::git::{GitService, GitRepository};
 
+pub use crate::application::git::{GitRepository, GitService};
 use crate::CoreError;
 
 mod repository;
@@ -58,29 +58,10 @@ impl Application {
         format!("{}_{}", random_name, random_number)
     }
 
-    pub fn initialize_git_repository(&self, git_server: impl GitService) -> Result<Box<Path>, CoreError> {
-        let application_dir = self.get_application_dir();
+    pub fn initialize_git_repository(&self, git_service: &dyn GitService) -> Result<GitRepository, CoreError> {
+        let git_repo = git_service.create_repo(self.owner.as_str(), self.name.as_str())?;
 
-        let result = Repository::init_bare(application_dir.as_path());
-        match result {
-            Ok(_) => Ok(application_dir.into_boxed_path()),
-            Err(e) => Err(CoreError { message: e.to_string() })
-        }
-    }
-
-    pub fn install_git_hooks<P: AsRef<Path>>(&self, hooks_dir: P, hook_file_names: &Vec<&str>) -> Result<(), CoreError> {
-        for hook_file in hook_file_names {
-            let from = PathBuf::new().join(&hooks_dir).join(hook_file);
-            let to = self.get_application_dir().join("hooks").join(hook_file);
-
-            let result = copy(from, to);
-
-            if let Err(e) = result {
-                return Err(CoreError { message: e.to_string() });
-            }
-        }
-
-        Ok(())
+        Ok(git_repo)
     }
 
     fn get_application_dir(&self) -> PathBuf {
@@ -96,49 +77,15 @@ mod tests {
     use tempdir::TempDir;
 
     use crate::application::Application;
-    use crate::application::git::{GitService, GitRepository};
+    use crate::application::git::{GitRepository, GitService};
     use crate::CoreError;
 
     struct DummyGitService;
 
     impl GitService for DummyGitService {
-        fn create_repo(owner: &str, app_name: &str) -> Result<GitRepository, CoreError> {
+        fn create_repo(&self, owner: &str, app_name: &str) -> Result<GitRepository, CoreError> {
             todo!()
         }
-    }
-
-    #[test]
-    fn should_initialize_git_repository() {
-        let application = create_application(Some("first_application".to_string()));
-        let git_server = DummyGitService;
-
-        let result = application.initialize_git_repository(git_server);
-        assert_eq!(result.is_ok(), true);
-
-        let project_path = result.ok().unwrap();
-        assert_eq!(PathBuf::new().join(project_path).join("objects").exists(), true);
-    }
-
-    #[test]
-    fn should_install_git_hooks_to_application() {
-        let application = create_application(Some("first_application".to_string()));
-        let git_server = DummyGitService;
-
-        application.initialize_git_repository(git_server).expect("could not initialize git repo");
-
-        let result = application.install_git_hooks("./_fixture/git_hooks/", &vec!["TEST_HOOKS"]);
-        assert_eq!(result.is_ok(), true);
-
-        let path = application.get_application_dir().join(Path::new("hooks")).join(Path::new("TEST_HOOKS"));
-        assert_eq!(read_to_string(path).unwrap(), "this is a test hook file.")
-    }
-
-    #[test]
-    fn should_error_when_install_git_hooks_to_application_if_application_not_initialized() {
-        let application = create_application(Some("first_application".to_string()));
-
-        let result = application.install_git_hooks("./_fixture/git_hooks/", &vec!["TEST_HOOKS"]);
-        assert_eq!(result.is_ok(), false);
     }
 
     #[test]
@@ -147,6 +94,13 @@ mod tests {
 
         println!("{}", &application.name);
         assert_eq!(application.name.is_empty(), false);
+    }
+
+    #[test]
+    fn should_use_given_application_name_if_give_application_name() {
+        let application = create_application(Some("first_capsule_application".to_string()));
+
+        assert_eq!(application.name, "first_capsule_application");
     }
 
     fn create_application(name: Option<String>) -> Application {

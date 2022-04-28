@@ -14,11 +14,11 @@
 use crate::CoreError;
 
 pub trait GitService {
-    fn create_repo(owner: &str, app_name: &str) -> Result<GitRepository, CoreError>;
+    fn create_repo(&self,owner: &str, app_name: &str) -> Result<GitRepository, CoreError>;
 }
 
 pub struct GitRepository {
-    url: String,
+    pub url: String,
 }
 
 
