@@ -11,7 +11,6 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-use std::ffi::OsString;
 use std::time::SystemTime;
 
 use diesel::*;
@@ -25,7 +24,7 @@ use crate::application::implementation::postgres::schema::capsule_applications::
 use crate::application::repository::ApplicationRepository;
 use crate::CoreError;
 
-impl From<diesel::result::Error> for CoreError {
+impl From<Error> for CoreError {
     fn from(e: Error) -> Self {
         CoreError { message: e.to_string() }
     }
@@ -44,11 +43,10 @@ impl<'a> ApplicationRepository for PostgresApplicationRepository<'a> {
         let new_application = NewApplication {
             application_name: application.name.clone(),
             owner: application.owner.clone(),
-            application_directory: application.application_directory.to_str().unwrap().to_string(),
             create_at: SystemTime::now(),
         };
 
-        diesel::insert_into(capsule_applications::table)
+        insert_into(capsule_applications::table)
             .values(&new_application)
             .execute(*&self.connection)?;
 
@@ -87,17 +85,13 @@ fn to_application(saved_application: SavedApplication) -> Application {
     let application = Application {
         name: saved_application.application_name,
         owner: saved_application.owner,
-        application_directory: OsString::from(saved_application.application_directory),
     };
     application
 }
 
 #[cfg(test)]
 mod tests {
-    use std::ffi::OsString;
-
     use diesel::*;
-    use tempdir::TempDir;
 
     use test_tool::get_test_db_connection;
 
@@ -113,7 +107,9 @@ mod tests {
 
         let repository: Box<dyn ApplicationRepository> = Box::new(PostgresApplicationRepository { connection });
 
-        let application = create_application("first_capsule_application", "first_capsule_user");
+        let new_application_name = "first_capsule_application";
+        let owner_name = "first_capsule_user";
+        let application = Application { name: new_application_name.into(), owner: owner_name.into() };
 
         let result = repository.add(&application);
 
@@ -126,7 +122,6 @@ mod tests {
         let saved_application = query_result.unwrap();
         assert_eq!(saved_application.application_name, "first_capsule_application".to_string());
         assert_eq!(saved_application.owner, "first_capsule_user".to_string());
-        assert_eq!(saved_application.application_directory, application.application_directory.as_os_str().to_str().unwrap().to_string());
     }
 
     #[test]
@@ -135,7 +130,9 @@ mod tests {
 
         let repository: Box<dyn ApplicationRepository> = Box::new(PostgresApplicationRepository { connection });
 
-        let new_application = create_application("first_capsule_application", "first_capsule_user");
+        let new_application_name = "first_capsule_application";
+        let owner_name = "first_capsule_user";
+        let new_application = Application { name: new_application_name.into(), owner: owner_name.into() };
 
         repository.add(&new_application).expect("could not add application");
 
@@ -143,7 +140,6 @@ mod tests {
 
         assert_eq!(application.name, "first_capsule_application".to_string());
         assert_eq!(application.owner, "first_capsule_user".to_string());
-        assert_eq!(application.application_directory, new_application.application_directory);
     }
 
     #[test]
@@ -163,10 +159,14 @@ mod tests {
 
         let repository: Box<dyn ApplicationRepository> = Box::new(PostgresApplicationRepository { connection });
 
-        let new_application = create_application("first_application_name", "first_application_user");
+        let new_application_name = "first_application_name";
+        let owner_name = "first_application_user";
+        let new_application = Application { name: new_application_name.into(), owner: owner_name.into() };
         repository.add(&new_application).expect("could not add application");
 
-        let new_application = create_application("second_application_name", "first_application_user");
+        let new_application_name = "second_application_name";
+        let owner_name = "first_application_user";
+        let new_application = Application { name: new_application_name.into(), owner: owner_name.into() };
         repository.add(&new_application).expect("could not add application");
 
         let applications = repository.find_applications_by_owner_name("first_application_user").unwrap();
@@ -182,21 +182,13 @@ mod tests {
 
         let repository: Box<dyn ApplicationRepository> = Box::new(PostgresApplicationRepository { connection });
 
-        let new_application = create_application("first_application_name", "first_application_user");
+        let new_application_name = "first_application_name";
+        let owner_name = "first_application_user";
+        let new_application = Application { name: new_application_name.into(), owner: owner_name.into() };
         repository.add(&new_application).expect("could not add application");
 
         let result = repository.add(&new_application);
         assert_eq!(result.is_err(), true);
         assert_eq!(result.err().unwrap().message, "application name is already taken");
-    }
-
-    fn create_application<T: Into<String>>(new_application_name: T, owner_name: T) -> Application {
-        let temp_dir = TempDir::new("").unwrap();
-
-        Application {
-            name: new_application_name.into(),
-            owner: owner_name.into(),
-            application_directory: OsString::from(temp_dir.path().as_os_str()),
-        }
     }
 }

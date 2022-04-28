@@ -11,12 +11,7 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-use std::ffi::OsString;
-use std::fs::copy;
-use std::path::{Path, PathBuf};
-
 use anarchist_readable_name_generator_lib::readable_name;
-use git2::Repository;
 use rand::Rng;
 
 pub use implementation::postgres::postgres_repository::PostgresApplicationRepository;
@@ -31,24 +26,16 @@ mod git;
 pub struct Application {
     pub name: String,
     pub owner: String,
-    pub application_directory: OsString,
 }
 
 impl Application {
-    pub fn new(new_app_name: Option<String>, owner: String, application_base_directory: OsString) -> Self {
+    pub fn new(new_app_name: Option<String>, owner: String) -> Self {
         let name = match new_app_name {
             Some(app_name) => app_name,
             _ => Self::random_name(),
         };
 
-        let app_path = PathBuf::new().join(application_base_directory).join(&owner).join(format!("{}.git", &name));
-        let application_directory = OsString::from(app_path.as_path().to_str().unwrap());
-
-        Self {
-            name,
-            owner,
-            application_directory,
-        }
+        Self { name, owner }
     }
 
     fn random_name() -> String {
@@ -63,19 +50,10 @@ impl Application {
 
         Ok(git_repo)
     }
-
-    fn get_application_dir(&self) -> PathBuf {
-        return PathBuf::new().join(self.application_directory.as_os_str());
-    }
 }
 
 #[cfg(test)]
 mod tests {
-    use std::fs::read_to_string;
-    use std::path::{Path, PathBuf};
-
-    use tempdir::TempDir;
-
     use crate::application::Application;
     use crate::application::git::{GitRepository, GitService};
     use crate::CoreError;
@@ -83,14 +61,15 @@ mod tests {
     struct DummyGitService;
 
     impl GitService for DummyGitService {
-        fn create_repo(&self, owner: &str, app_name: &str) -> Result<GitRepository, CoreError> {
+        fn create_repo(&self, _owner: &str, _app_name: &str) -> Result<GitRepository, CoreError> {
             todo!()
         }
     }
 
     #[test]
     fn should_generate_application_if_not_given_application_name() {
-        let application = create_application(None);
+        let name = None;
+        let application = Application::new(name, "first_capsule_user".to_string());
 
         println!("{}", &application.name);
         assert_eq!(application.name.is_empty(), false);
@@ -98,17 +77,9 @@ mod tests {
 
     #[test]
     fn should_use_given_application_name_if_give_application_name() {
-        let application = create_application(Some("first_capsule_application".to_string()));
+        let name = Some("first_capsule_application".to_string());
+        let application = Application::new(name, "first_capsule_user".to_string());
 
         assert_eq!(application.name, "first_capsule_application");
-    }
-
-    fn create_application(name: Option<String>) -> Application {
-        let project_base_dir = TempDir::new("").unwrap();
-        Application::new(
-            name,
-            "first_capsule_user".to_string(),
-            project_base_dir.path().as_os_str().to_os_string(),
-        )
     }
 }

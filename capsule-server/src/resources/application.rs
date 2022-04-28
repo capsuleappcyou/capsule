@@ -54,12 +54,9 @@ impl GitService for DefaultGitService {
 pub async fn create_application(request: web::Json<ApplicationCreateRequest>) -> impl Responder {
     let user_name = "capsule".to_string();
 
-    let app_base_dir = &CONTEXT.settings.git_repo.base_dir;
-
     let git_server = DefaultGitService;
 
-    let application = Application::new(
-        request.name.clone(), user_name, OsString::from(app_base_dir));
+    let application = Application::new(request.name.clone(), user_name);
 
     let git_repo_create_result = application.initialize_git_repository(&git_server);
 

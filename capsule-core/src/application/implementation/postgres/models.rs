@@ -6,7 +6,6 @@ use super::schema::capsule_applications;
 pub struct SavedApplication {
     pub id: i32,
     pub application_name: String,
-    pub application_directory: String,
     pub owner: String,
     pub create_at: SystemTime,
 }
@@ -15,7 +14,6 @@ pub struct SavedApplication {
 #[table_name = "capsule_applications"]
 pub struct NewApplication {
     pub application_name: String,
-    pub application_directory: String,
     pub owner: String,
     pub create_at: SystemTime,
 }
