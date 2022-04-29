@@ -20,6 +20,7 @@ use capsule_core::application::{Application, GitRepository, GitService};
 use capsule_core::CoreError;
 
 use crate::context::CONTEXT;
+use crate::implementation::git_repo::DefaultGitService;
 use crate::settings::GitRepo;
 
 #[derive(Deserialize, Serialize)]
@@ -42,14 +43,6 @@ impl Default for ApplicationCreateRequest {
     }
 }
 
-struct DefaultGitService;
-
-impl GitService for DefaultGitService {
-    fn create_repo(&self, owner: &str, app_name: &str) -> Result<GitRepository, CoreError> {
-        Ok(GitRepository { url: "https://git.capsuleapp.cyou/capsule/first_capsule_application.git".to_string() })
-    }
-}
-
 #[post("/applications")]
 pub async fn create_application(request: web::Json<ApplicationCreateRequest>) -> impl Responder {
     let user_name = "capsule".to_string();
@@ -58,7 +51,7 @@ pub async fn create_application(request: web::Json<ApplicationCreateRequest>) ->
 
     let application = Application::new(request.name.clone(), user_name);
 
-    let git_repo_create_result = application.initialize_git_repository(&git_server);
+    let git_repo_create_result = application.create_git_repository(&git_server);
 
     match git_repo_create_result {
         Ok(repo) => {
@@ -107,9 +100,6 @@ mod tests {
         async fn should_return_application_information_if_create_successfully() {
             std::env::set_var("CAPSULE_CONFIG_SERVER_DIR", "./_fixture");
             std::env::set_var("CAPSULE_SERVER_CONFIG_FILE", "capsule-server.toml");
-
-            let git_dir = TempDir::new("git").unwrap();
-            std::env::set_var("CAPSULE_SERVER__GIT_REPO__BASE_DIR", git_dir.path().to_str().unwrap());
 
             let app =
                 test::init_service(App::new().service(create_application))

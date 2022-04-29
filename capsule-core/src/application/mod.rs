@@ -45,10 +45,8 @@ impl Application {
         format!("{}_{}", random_name, random_number)
     }
 
-    pub fn initialize_git_repository(&self, git_service: &dyn GitService) -> Result<GitRepository, CoreError> {
-        let git_repo = git_service.create_repo(self.owner.as_str(), self.name.as_str())?;
-
-        Ok(git_repo)
+    pub fn create_git_repository(&self, git_service: &dyn GitService) -> Result<GitRepository, CoreError> {
+        Ok(git_service.create_repo(self.owner.as_str(), self.name.as_str())?)
     }
 }
 
