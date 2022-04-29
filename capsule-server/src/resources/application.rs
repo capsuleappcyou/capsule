@@ -20,7 +20,7 @@ use capsule_core::application::{Application, GitRepository, GitService};
 use capsule_core::CoreError;
 
 use crate::context::CONTEXT;
-use crate::implementation::git_repo::DefaultGitService;
+use crate::implementation::git_service::DefaultGitService;
 use crate::settings::GitRepo;
 
 #[derive(Deserialize, Serialize)]
@@ -47,11 +47,11 @@ impl Default for ApplicationCreateRequest {
 pub async fn create_application(request: web::Json<ApplicationCreateRequest>) -> impl Responder {
     let user_name = "capsule".to_string();
 
-    let git_server = DefaultGitService;
+    let git_service =  &CONTEXT.git_service();
 
     let application = Application::new(request.name.clone(), user_name);
 
-    let git_repo_create_result = application.create_git_repository(&git_server);
+    let git_repo_create_result = application.create_git_repository(git_service);
 
     match git_repo_create_result {
         Ok(repo) => {

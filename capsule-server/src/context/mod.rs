@@ -15,6 +15,9 @@ use std::env;
 
 use lazy_static::lazy_static;
 
+use capsule_core::application::GitService;
+
+use crate::implementation::git_service::DefaultGitService;
 use crate::Settings;
 
 lazy_static! {
@@ -28,8 +31,12 @@ pub struct ServerContext {
 impl ServerContext {
     pub fn new() -> Self {
         let config_dir = env::var("CAPSULE_CONFIG_SERVER_DIR").unwrap_or_else(|_| "./config".into());
-        Self {
-            settings: Settings::new(config_dir.as_str()).unwrap()
-        }
+        let settings = Settings::new(config_dir.as_str()).unwrap();
+
+        Self { settings }
+    }
+
+    pub fn git_service(&self) -> impl GitService {
+        DefaultGitService
     }
 }
