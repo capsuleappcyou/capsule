@@ -11,14 +11,13 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-use std::env;
-
+use std::sync::Arc;
 use lazy_static::lazy_static;
 
 use capsule_core::application::GitService;
 
 use crate::implementation::git_service::DefaultGitService;
-use crate::Settings;
+use crate::settings::Settings;
 
 lazy_static! {
     pub static ref CONTEXT: ServerContext = ServerContext::new();
@@ -30,8 +29,7 @@ pub struct ServerContext {
 
 impl ServerContext {
     pub fn new() -> Self {
-        let config_dir = env::var("CAPSULE_CONFIG_SERVER_DIR").unwrap_or_else(|_| "./config".into());
-        let settings = Settings::new(config_dir.as_str()).unwrap();
+        let settings = Settings::new();
 
         Self { settings }
     }

@@ -11,20 +11,22 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+extern crate core;
+
 use std::net::IpAddr;
 use std::str::FromStr;
 
 use actix_web::{App, HttpServer};
+use coi::container;
 
 use resources::application;
-use settings::Settings;
 
 use crate::context::CONTEXT;
 
 mod resources;
-mod settings;
 mod context;
 mod implementation;
+pub mod settings;
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {

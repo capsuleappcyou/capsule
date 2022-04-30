@@ -21,7 +21,6 @@ use capsule_core::CoreError;
 
 use crate::context::CONTEXT;
 use crate::implementation::git_service::DefaultGitService;
-use crate::settings::GitRepo;
 
 #[derive(Deserialize, Serialize)]
 pub struct ApplicationCreateRequest {
@@ -47,7 +46,7 @@ impl Default for ApplicationCreateRequest {
 pub async fn create_application(request: web::Json<ApplicationCreateRequest>) -> impl Responder {
     let user_name = "capsule".to_string();
 
-    let git_service =  &CONTEXT.git_service();
+    let git_service = &CONTEXT.git_service();
 
     let application = Application::new(request.name.clone(), user_name);
 
@@ -85,6 +84,7 @@ fn app_url(application: &Application) -> String {
 mod tests {
     use actix_web::{App, http::{self}, test};
     use actix_web::dev::Service;
+    use coi::{container, Container};
 
     use super::*;
 
@@ -92,6 +92,7 @@ mod tests {
     mod create_application {
         use std::path::Path;
 
+        use coi::container;
         use tempdir::TempDir;
 
         use super::*;
@@ -102,7 +103,8 @@ mod tests {
             std::env::set_var("CAPSULE_SERVER_CONFIG_FILE", "capsule-server.toml");
 
             let app =
-                test::init_service(App::new().service(create_application))
+                test::init_service(App::new()
+                    .service(create_application))
                     .await;
 
             let req = test::TestRequest::post()
@@ -126,4 +128,12 @@ mod tests {
             std::env::remove_var("CAPSULE_SERVER__GIT_REPO__BASE_DIR");
         }
     }
+
+    // fn container() -> Container {
+    //     let container = container! {
+    //             settings => SettingsProvider; singleton
+    //         };
+    //
+    //     container
+    // }
 }
