@@ -12,10 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 use std::env;
-use std::sync::Arc;
 
-use coi::Inject;
-use config::{Config, ConfigError, Environment, File};
+use config::{Config, Environment, File};
 use serde::Deserialize;
 
 #[derive(Deserialize)]
@@ -35,18 +33,11 @@ pub struct GitRepo {
     pub base_dir: String,
 }
 
-#[derive(Inject, Deserialize)]
-#[coi(provides Settings with Settings::new())]
+#[derive(Deserialize)]
 pub struct Settings {
     pub app: App,
     pub server: Server,
     pub git_repo: GitRepo,
-}
-
-#[derive(Inject)]
-#[coi(provides TestStruct with TestStruct{})]
-pub struct TestStruct{
-
 }
 
 impl Settings {
@@ -76,8 +67,6 @@ mod tests {
     use std::env;
     use std::sync::Arc;
 
-    use coi::container;
-
     use super::*;
 
     #[test]
@@ -102,13 +91,9 @@ mod tests {
         assert_eq!("https://{app_name}.capsuleapp.cyou", settings.app.url_template);
     }
 
-    fn settings() -> Arc<Settings> {
+    fn settings() -> Settings {
         env::set_var("CAPSULE_CONFIG_SERVER_DIR", "./_fixture");
 
-        let container = container! {
-                settings => SettingsProvider; singleton
-            };
-
-        container.resolve::<Settings>("settings").expect("settings not found.")
+        Settings::new()
     }
 }

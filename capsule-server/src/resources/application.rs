@@ -84,7 +84,6 @@ fn app_url(application: &Application) -> String {
 mod tests {
     use actix_web::{App, http::{self}, test};
     use actix_web::dev::Service;
-    use coi::{container, Container};
 
     use super::*;
 
@@ -92,7 +91,6 @@ mod tests {
     mod create_application {
         use std::path::Path;
 
-        use coi::container;
         use tempdir::TempDir;
 
         use super::*;
@@ -128,12 +126,4 @@ mod tests {
             std::env::remove_var("CAPSULE_SERVER__GIT_REPO__BASE_DIR");
         }
     }
-
-    // fn container() -> Container {
-    //     let container = container! {
-    //             settings => SettingsProvider; singleton
-    //         };
-    //
-    //     container
-    // }
 }

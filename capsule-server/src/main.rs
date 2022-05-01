@@ -17,7 +17,6 @@ use std::net::IpAddr;
 use std::str::FromStr;
 
 use actix_web::{App, HttpServer};
-use coi::container;
 
 use resources::application;
 
