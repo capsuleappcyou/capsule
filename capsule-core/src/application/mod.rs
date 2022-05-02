@@ -52,17 +52,10 @@ impl Application {
 
 #[cfg(test)]
 mod tests {
-    use crate::application::Application;
-    use crate::application::git::{GitRepository, GitService};
-    use crate::CoreError;
+    use mockall::predicate::eq;
 
-    struct DummyGitService;
-
-    impl GitService for DummyGitService {
-        fn create_repo(&self, _owner: &str, _app_name: &str) -> Result<GitRepository, CoreError> {
-            todo!()
-        }
-    }
+    use crate::application::{Application, GitRepository};
+    use crate::application::git::MockGitService;
 
     #[test]
     fn should_generate_application_if_not_given_application_name() {
@@ -79,5 +72,18 @@ mod tests {
         let application = Application::new(name, "first_capsule_user".to_string());
 
         assert_eq!(application.name, "first_capsule_application");
+    }
+
+    #[test]
+    fn should_call_git_service_to_create_git_repo() {
+        let application = Application::new(Some("first_capsule_application".to_string()), "first_capsule_user".to_string());
+        let mut git_service = MockGitService::new();
+
+        git_service.expect_create_repo()
+            .with(eq("first_capsule_user"), eq("first_capsule_application"))
+            .times(1)
+            .returning(|_, _| Ok(GitRepository { url: "".to_string() }));
+
+        application.create_git_repository(&git_service).expect("create git repo failed.");
     }
 }

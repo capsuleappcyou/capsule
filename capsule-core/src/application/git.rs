@@ -11,10 +11,12 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+use mockall::{automock, predicate::*};
 use crate::CoreError;
 
+#[cfg_attr(test, automock)]
 pub trait GitService {
-    fn create_repo(&self,owner: &str, app_name: &str) -> Result<GitRepository, CoreError>;
+    fn create_repo(&self, owner: &str, app_name: &str) -> Result<GitRepository, CoreError>;
 }
 
 pub struct GitRepository {
