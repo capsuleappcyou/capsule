@@ -65,7 +65,6 @@ impl Settings {
 #[cfg(test)]
 mod tests {
     use std::env;
-    use std::sync::Arc;
 
     use super::*;
 

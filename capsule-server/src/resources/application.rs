@@ -11,16 +11,12 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-use std::ffi::OsString;
-
 use actix_web::{http, post, Responder, web};
 use serde::{Deserialize, Serialize};
 
-use capsule_core::application::{Application, GitRepository, GitService};
-use capsule_core::CoreError;
+use capsule_core::application::Application;
 
-use crate::context::CONTEXT;
-use crate::implementation::git_service::DefaultGitService;
+use crate::context::ServerContext;
 
 #[derive(Deserialize, Serialize)]
 pub struct ApplicationCreateRequest {
@@ -43,29 +39,29 @@ impl Default for ApplicationCreateRequest {
 }
 
 #[post("/applications")]
-pub async fn create_application(request: web::Json<ApplicationCreateRequest>) -> impl Responder {
+pub async fn create_application(request: web::Json<ApplicationCreateRequest>, context: web::Data<ServerContext>) -> impl Responder {
     let user_name = "capsule".to_string();
 
-    let git_service = &CONTEXT.git_service();
+    let git_service = context.git_service();
 
     let application = Application::new(request.name.clone(), user_name);
 
-    let git_repo_create_result = application.create_git_repository(git_service);
+    let git_repo_create_result = application.create_git_repository(git_service.as_ref());
 
     match git_repo_create_result {
         Ok(repo) => {
             let response = ApplicationCreateResponse {
                 name: application.name.clone(),
-                url: app_url(&application),
+                url: app_url(&application, context.settings().as_ref().app.url_template.clone()),
                 git_repo_url: repo.url,
             };
 
             (web::Json(response), http::StatusCode::CREATED)
         }
-        Err(e) => {
+        Err(_) => {
             let response = ApplicationCreateResponse {
                 name: application.name.clone(),
-                url: app_url(&application),
+                url: app_url(&application, context.settings().as_ref().app.url_template.clone()),
                 git_repo_url: "".to_string(),
             };
 
@@ -74,10 +70,8 @@ pub async fn create_application(request: web::Json<ApplicationCreateRequest>) ->
     }
 }
 
-fn app_url(application: &Application) -> String {
-    let template = &CONTEXT.settings.app.url_template;
-
-    template.replace("{app_name}", application.name.as_str())
+fn app_url(application: &Application, url_template: String) -> String {
+    url_template.replace("{app_name}", application.name.as_str())
 }
 
 #[cfg(test)]
@@ -89,9 +83,15 @@ mod tests {
 
     #[cfg(test)]
     mod create_application {
-        use std::path::Path;
+        use std::sync::Arc;
 
-        use tempdir::TempDir;
+        use actix_web::middleware;
+
+        use capsule_core::application::{GitRepository, GitService};
+        use capsule_core::CoreError;
+
+        use crate::context::ServerContext;
+        use crate::Settings;
 
         use super::*;
 
@@ -102,6 +102,8 @@ mod tests {
 
             let app =
                 test::init_service(App::new()
+                    .app_data(web::Data::new(context()))
+                    .wrap(middleware::Logger::default())
                     .service(create_application))
                     .await;
 
@@ -124,6 +126,21 @@ mod tests {
             assert_eq!(actix_web::web::Bytes::from(expect_json), body);
 
             std::env::remove_var("CAPSULE_SERVER__GIT_REPO__BASE_DIR");
+        }
+
+        fn context() -> ServerContext {
+            struct GitServiceStub;
+
+            impl GitService for GitServiceStub {
+                fn create_repo(&self, _owner: &str, _app_name: &str) -> Result<GitRepository, CoreError> {
+                    Ok(GitRepository { url: "https://git.capsuleapp.cyou/capsule/first_capsule_application.git".to_string() })
+                }
+            }
+
+            ServerContext {
+                settings: Arc::new(Settings::new()),
+                git_service: Arc::new(GitServiceStub),
+            }
         }
     }
 }

@@ -377,7 +377,6 @@ dependencies = [
  "capsule-core",
  "config",
  "git2",
- "lazy_static",
  "serde",
  "serde_json",
  "tempdir",

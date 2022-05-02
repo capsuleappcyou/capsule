@@ -12,29 +12,30 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 use std::sync::Arc;
-use lazy_static::lazy_static;
 
 use capsule_core::application::GitService;
 
 use crate::implementation::git_service::DefaultGitService;
 use crate::settings::Settings;
 
-lazy_static! {
-    pub static ref CONTEXT: ServerContext = ServerContext::new();
-}
-
 pub struct ServerContext {
-    pub settings: Settings,
+    pub settings: Arc<Settings>,
+    pub git_service: Arc<dyn GitService>,
 }
 
 impl ServerContext {
     pub fn new() -> Self {
-        let settings = Settings::new();
+        let settings = Arc::new(Settings::new());
+        let git_service = Arc::new(DefaultGitService);
 
-        Self { settings }
+        Self { settings, git_service }
     }
 
-    pub fn git_service(&self) -> impl GitService {
-        DefaultGitService
+    pub fn settings(&self) -> Arc<Settings> {
+        self.settings.clone()
+    }
+
+    pub fn git_service(&self) -> Arc<dyn GitService> {
+        self.git_service.clone()
     }
 }
