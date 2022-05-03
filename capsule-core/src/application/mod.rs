@@ -16,12 +16,14 @@ use rand::Rng;
 
 pub use implementation::postgres::postgres_repository::PostgresApplicationRepository;
 
+use crate::application::dns::{CnameRecord, DnsService};
 pub use crate::application::git::{GitRepository, GitService};
 use crate::CoreError;
 
 mod repository;
 mod implementation;
 mod git;
+mod dns;
 
 pub struct Application {
     pub name: String,
@@ -48,6 +50,10 @@ impl Application {
     pub fn create_git_repository(&self, git_service: &dyn GitService) -> Result<GitRepository, CoreError> {
         Ok(git_service.create_repo(self.owner.as_str(), self.name.as_str())?)
     }
+
+    pub fn add_cname_record(&self, dns_service: &dyn DnsService) -> Result<CnameRecord, CoreError> {
+        Ok(dns_service.add_cname_record(self.name.as_str())?)
+    }
 }
 
 #[cfg(test)]
@@ -55,6 +61,7 @@ mod tests {
     use mockall::predicate::eq;
 
     use crate::application::{Application, GitRepository};
+    use crate::application::dns::{CnameRecord, MockDnsService};
     use crate::application::git::MockGitService;
 
     #[test]
@@ -82,8 +89,25 @@ mod tests {
         git_service.expect_create_repo()
             .with(eq("first_capsule_user"), eq("first_capsule_application"))
             .times(1)
-            .returning(|_, _| Ok(GitRepository { url: "".to_string() }));
+            .returning(|_, _| Ok(GitRepository { url: "https://git.test.com".to_string() }));
 
-        application.create_git_repository(&git_service).expect("create git repo failed.");
+        let git_repo = application.create_git_repository(&git_service).expect("create git repo failed.");
+
+        assert_eq!(git_repo.url, "https://git.test.com");
+    }
+
+    #[test]
+    fn should_call_dns_service_to_create_cname_record() {
+        let application = Application::new(Some("first_capsule_application".to_string()), "first_capsule_user".to_string());
+        let mut dns_service = MockDnsService::new();
+
+        dns_service.expect_add_cname_record()
+            .with(eq("first_capsule_application"))
+            .times(1)
+            .returning(|cname| Ok(CnameRecord { domain_name: format!("{}.capsuleapp.cyou", cname) }));
+
+       let cname_record = application.add_cname_record(&dns_service).expect("add cname record failed.");
+
+        assert_eq!(cname_record.domain_name, "first_capsule_application.capsuleapp.cyou");
     }
 }

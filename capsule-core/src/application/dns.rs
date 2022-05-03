@@ -13,15 +13,14 @@
 // limitations under the License.
 #[cfg(test)]
 use mockall::{automock, predicate::*};
+
 use crate::CoreError;
 
 #[cfg_attr(test, automock)]
-pub trait GitService {
-    fn create_repo(&self, owner: &str, app_name: &str) -> Result<GitRepository, CoreError>;
+pub trait DnsService {
+    fn add_cname_record(&self, cname: &str) -> Result<CnameRecord, CoreError>;
 }
 
-pub struct GitRepository {
-    pub url: String,
+pub struct CnameRecord {
+    pub domain_name: String,
 }
-
-
