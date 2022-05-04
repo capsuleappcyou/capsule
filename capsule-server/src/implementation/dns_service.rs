@@ -11,13 +11,13 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-use capsule_core::application::{GitRepository, GitService};
+use capsule_core::application::{CnameRecord, DnsService};
 use capsule_core::CoreError;
 
-pub struct DefaultGitService;
+pub struct DefaultDnsService;
 
-impl GitService for DefaultGitService {
-    fn create_repo(&self, _owner: &str, _app_name: &str) -> Result<GitRepository, CoreError> {
+impl DnsService for DefaultDnsService {
+    fn add_cname_record(&self, cname: &str) -> Result<CnameRecord, CoreError> {
         todo!()
     }
 }

@@ -14,7 +14,7 @@
 use actix_web::{http, post, Responder, web};
 use serde::{Deserialize, Serialize};
 
-use capsule_core::application::Application;
+use capsule_core::application::{Application, GitRepository, GitService};
 
 use crate::context::ServerContext;
 
@@ -88,6 +88,7 @@ mod tests {
         use actix_web::middleware;
 
         use capsule_core::application::{GitRepository, GitService};
+        use capsule_core::application::{CnameRecord, DnsService};
         use capsule_core::CoreError;
 
         use crate::context::ServerContext;
@@ -130,16 +131,23 @@ mod tests {
 
         fn context() -> ServerContext {
             struct GitServiceStub;
-
             impl GitService for GitServiceStub {
                 fn create_repo(&self, _owner: &str, _app_name: &str) -> Result<GitRepository, CoreError> {
                     Ok(GitRepository { url: "https://git.capsuleapp.cyou/capsule/first_capsule_application.git".to_string() })
                 }
             }
 
+            struct DnsServiceStub;
+            impl DnsService for DnsServiceStub {
+                fn add_cname_record(&self, cname: &str) -> Result<CnameRecord, CoreError> {
+                    Ok(CnameRecord { domain_name: "".to_string() })
+                }
+            }
+
             ServerContext {
                 settings: Arc::new(Settings::new()),
                 git_service: Arc::new(GitServiceStub),
+                dns_service: Arc::new(DnsServiceStub),
             }
         }
     }

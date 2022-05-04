@@ -13,22 +13,25 @@
 // limitations under the License.
 use std::sync::Arc;
 
-use capsule_core::application::GitService;
+use capsule_core::application::{DnsService, GitService};
 
 use crate::implementation::git_service::DefaultGitService;
+use crate::implementation::dns_service::DefaultDnsService;
 use crate::settings::Settings;
 
 pub struct ServerContext {
     pub settings: Arc<Settings>,
     pub git_service: Arc<dyn GitService>,
+    pub dns_service: Arc<dyn DnsService>,
 }
 
 impl ServerContext {
     pub fn new() -> Self {
         let settings = Arc::new(Settings::new());
         let git_service = Arc::new(DefaultGitService);
+        let dns_service = Arc::new(DefaultDnsService);
 
-        Self { settings, git_service }
+        Self { settings, git_service, dns_service }
     }
 
     pub fn settings(&self) -> Arc<Settings> {

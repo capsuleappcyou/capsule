@@ -16,7 +16,7 @@ use rand::Rng;
 
 pub use implementation::postgres::postgres_repository::PostgresApplicationRepository;
 
-use crate::application::dns::{CnameRecord, DnsService};
+pub use crate::application::dns::{DnsService, CnameRecord};
 pub use crate::application::git::{GitRepository, GitService};
 use crate::CoreError;
 
@@ -106,7 +106,7 @@ mod tests {
             .times(1)
             .returning(|cname| Ok(CnameRecord { domain_name: format!("{}.capsuleapp.cyou", cname) }));
 
-       let cname_record = application.add_cname_record(&dns_service).expect("add cname record failed.");
+        let cname_record = application.add_cname_record(&dns_service).expect("add cname record failed.");
 
         assert_eq!(cname_record.domain_name, "first_capsule_application.capsuleapp.cyou");
     }
