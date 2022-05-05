@@ -11,12 +11,12 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-use capsule_core::application::{CnameRecord, DnsService};
+use capsule_core::application::{CnameRecord, DomainNameService};
 use capsule_core::CoreError;
 
-pub struct DefaultDnsService;
+pub struct DefaultDomainNameService;
 
-impl DnsService for DefaultDnsService {
+impl DomainNameService for DefaultDomainNameService {
     fn add_cname_record(&self, cname: &str) -> Result<CnameRecord, CoreError> {
         todo!()
     }

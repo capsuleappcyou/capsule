@@ -17,7 +17,7 @@ use mockall::{automock, predicate::*};
 use crate::CoreError;
 
 #[cfg_attr(test, automock)]
-pub trait DnsService {
+pub trait DomainNameService {
     fn add_cname_record(&self, cname: &str) -> Result<CnameRecord, CoreError>;
 }
 

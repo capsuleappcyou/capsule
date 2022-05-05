@@ -12,4 +12,4 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 pub mod git_service;
-pub mod dns_service;
+pub mod domain_name_service;

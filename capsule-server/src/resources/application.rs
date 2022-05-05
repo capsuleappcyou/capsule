@@ -88,7 +88,7 @@ mod tests {
         use actix_web::middleware;
 
         use capsule_core::application::{GitRepository, GitService};
-        use capsule_core::application::{CnameRecord, DnsService};
+        use capsule_core::application::{CnameRecord, DomainNameService};
         use capsule_core::CoreError;
 
         use crate::context::ServerContext;
@@ -137,8 +137,8 @@ mod tests {
                 }
             }
 
-            struct DnsServiceStub;
-            impl DnsService for DnsServiceStub {
+            struct DomainNameServiceStub;
+            impl DomainNameService for DomainNameServiceStub {
                 fn add_cname_record(&self, cname: &str) -> Result<CnameRecord, CoreError> {
                     Ok(CnameRecord { domain_name: "".to_string() })
                 }
@@ -147,7 +147,7 @@ mod tests {
             ServerContext {
                 settings: Arc::new(Settings::new()),
                 git_service: Arc::new(GitServiceStub),
-                dns_service: Arc::new(DnsServiceStub),
+                domain_name_service: Arc::new(DomainNameServiceStub),
             }
         }
     }
