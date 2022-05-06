@@ -13,11 +13,11 @@
 // limitations under the License.
 #[cfg(test)]
 use mockall::{automock, predicate::*};
-use crate::CoreError;
+use crate::application::ApplicationError;
 
 #[cfg_attr(test, automock)]
 pub trait GitService {
-    fn create_repo(&self, owner: &str, app_name: &str) -> Result<GitRepository, CoreError>;
+    fn create_repo(&self, owner: &str, app_name: &str) -> Result<GitRepository, ApplicationError>;
 }
 
 pub struct GitRepository {

@@ -71,7 +71,7 @@ mod tests {
 
         use actix_web::middleware;
 
-        use capsule_core::application::{GitRepository, GitService};
+        use capsule_core::application::{ApplicationError, GitRepository, GitService};
         use capsule_core::application::{CnameRecord, DomainNameService};
         use capsule_core::CoreError;
 
@@ -116,15 +116,15 @@ mod tests {
         fn context() -> ServerContext {
             struct GitServiceStub;
             impl GitService for GitServiceStub {
-                fn create_repo(&self, _owner: &str, _app_name: &str) -> Result<GitRepository, CoreError> {
+                fn create_repo(&self, _owner: &str, _app_name: &str) -> Result<GitRepository, ApplicationError> {
                     Ok(GitRepository { url: "https://git.capsuleapp.cyou/capsule/first_capsule_application.git".to_string() })
                 }
             }
 
             struct DomainNameServiceStub;
             impl DomainNameService for DomainNameServiceStub {
-                fn add_cname_record(&self, cname: &str) -> Result<CnameRecord, CoreError> {
-                    Ok(CnameRecord { domain_name: format!("{}.capsuleapp.cyou",cname) })
+                fn add_cname_record(&self, cname: &str) -> Result<CnameRecord, ApplicationError> {
+                    Ok(CnameRecord { domain_name: format!("{}.capsuleapp.cyou", cname) })
                 }
             }
 

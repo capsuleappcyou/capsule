@@ -14,11 +14,12 @@
 #[cfg(test)]
 use mockall::{automock, predicate::*};
 
+use crate::application::ApplicationError;
 use crate::CoreError;
 
 #[cfg_attr(test, automock)]
 pub trait DomainNameService {
-    fn add_cname_record(&self, cname: &str) -> Result<CnameRecord, CoreError>;
+    fn add_cname_record(&self, cname: &str) -> Result<CnameRecord, ApplicationError>;
 }
 
 pub struct CnameRecord {

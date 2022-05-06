@@ -11,13 +11,13 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-use capsule_core::application::{GitRepository, GitService};
+use capsule_core::application::{ApplicationError, GitRepository, GitService};
 use capsule_core::CoreError;
 
 pub struct DefaultGitService;
 
 impl GitService for DefaultGitService {
-    fn create_repo(&self, _owner: &str, _app_name: &str) -> Result<GitRepository, CoreError> {
+    fn create_repo(&self, _owner: &str, _app_name: &str) -> Result<GitRepository, ApplicationError> {
         todo!()
     }
 }

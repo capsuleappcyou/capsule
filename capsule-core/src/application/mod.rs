@@ -1,3 +1,5 @@
+use std::fmt::Display;
+
 // Copyright 2022 the original author or authors.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -25,6 +27,21 @@ mod implementation;
 mod git;
 mod domain_name;
 
+#[derive(Debug)]
+pub enum ApplicationError {
+    GitError(String),
+    DomainNameError(String),
+}
+
+impl Display for ApplicationError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            ApplicationError::GitError(message) => write!(f, "{}", message),
+            ApplicationError::DomainNameError(message) => write!(f, "{}", message),
+        }
+    }
+}
+
 pub struct Application {
     pub name: String,
     pub owner: String,
@@ -47,11 +64,11 @@ impl Application {
         format!("{}_{}", random_name, random_number)
     }
 
-    pub fn create_git_repository(&self, git_service: &dyn GitService) -> Result<GitRepository, CoreError> {
+    pub fn create_git_repository(&self, git_service: &dyn GitService) -> Result<GitRepository, ApplicationError> {
         Ok(git_service.create_repo(self.owner.as_str(), self.name.as_str())?)
     }
 
-    pub fn add_cname_record(&self, domain_name_service: &dyn DomainNameService) -> Result<CnameRecord, CoreError> {
+    pub fn add_cname_record(&self, domain_name_service: &dyn DomainNameService) -> Result<CnameRecord, ApplicationError> {
         Ok(domain_name_service.add_cname_record(self.name.as_str())?)
     }
 }
