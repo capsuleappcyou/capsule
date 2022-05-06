@@ -14,7 +14,7 @@
 use actix_web::{http, post, Responder, web};
 use serde::{Deserialize, Serialize};
 
-use capsule_core::application::{Application, GitRepository, GitService};
+use capsule_core::application::Application;
 
 use crate::context::ServerContext;
 
@@ -46,32 +46,16 @@ pub async fn create_application(request: web::Json<ApplicationCreateRequest>, co
 
     let application = Application::new(request.name.clone(), user_name);
 
-    let git_repo_create_result = application.create_git_repository(git_service.as_ref());
+    let git_repo = application.create_git_repository(git_service.as_ref()).unwrap();
+    let cname_record = application.add_cname_record(context.domain_name_service().as_ref()).unwrap();
 
-    match git_repo_create_result {
-        Ok(repo) => {
-            let response = ApplicationCreateResponse {
-                name: application.name.clone(),
-                url: app_url(&application, context.settings().as_ref().app.url_template.clone()),
-                git_repo_url: repo.url,
-            };
+    let response = ApplicationCreateResponse {
+        name: application.name.clone(),
+        url: format!("https://{}", cname_record.domain_name),
+        git_repo_url: git_repo.url,
+    };
 
-            (web::Json(response), http::StatusCode::CREATED)
-        }
-        Err(_) => {
-            let response = ApplicationCreateResponse {
-                name: application.name.clone(),
-                url: app_url(&application, context.settings().as_ref().app.url_template.clone()),
-                git_repo_url: "".to_string(),
-            };
-
-            (web::Json(response), http::StatusCode::CREATED)
-        }
-    }
-}
-
-fn app_url(application: &Application, url_template: String) -> String {
-    url_template.replace("{app_name}", application.name.as_str())
+    (web::Json(response), http::StatusCode::CREATED)
 }
 
 #[cfg(test)]
@@ -140,7 +124,7 @@ mod tests {
             struct DomainNameServiceStub;
             impl DomainNameService for DomainNameServiceStub {
                 fn add_cname_record(&self, cname: &str) -> Result<CnameRecord, CoreError> {
-                    Ok(CnameRecord { domain_name: "".to_string() })
+                    Ok(CnameRecord { domain_name: format!("{}.capsuleapp.cyou",cname) })
                 }
             }
 

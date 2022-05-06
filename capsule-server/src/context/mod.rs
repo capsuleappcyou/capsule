@@ -41,4 +41,8 @@ impl ServerContext {
     pub fn git_service(&self) -> Arc<dyn GitService> {
         self.git_service.clone()
     }
+
+    pub fn domain_name_service(&self) -> Arc<dyn DomainNameService> {
+        self.domain_name_service.clone()
+    }
 }

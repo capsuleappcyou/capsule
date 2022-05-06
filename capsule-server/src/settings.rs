@@ -23,21 +23,8 @@ pub struct Server {
 }
 
 #[derive(Deserialize)]
-pub struct App {
-    pub url_template: String,
-}
-
-#[derive(Deserialize)]
-pub struct GitRepo {
-    pub url_template: String,
-    pub base_dir: String,
-}
-
-#[derive(Deserialize)]
 pub struct Settings {
-    pub app: App,
     pub server: Server,
-    pub git_repo: GitRepo,
 }
 
 impl Settings {
@@ -74,20 +61,6 @@ mod tests {
 
         assert_eq!(80, settings.server.listen_port);
         assert_eq!("::", settings.server.listen_addr);
-    }
-
-    #[test]
-    fn should_read_git_repo_config() {
-        let settings = settings();
-
-        assert_eq!("https://git.capsuleapp.cyou/{user_name}/{app_name}.git", settings.git_repo.url_template);
-    }
-
-    #[test]
-    fn should_read_app_config() {
-        let settings = settings();
-
-        assert_eq!("https://{app_name}.capsuleapp.cyou", settings.app.url_template);
     }
 
     fn settings() -> Settings {

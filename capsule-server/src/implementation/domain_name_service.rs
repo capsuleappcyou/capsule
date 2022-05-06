@@ -17,7 +17,7 @@ use capsule_core::CoreError;
 pub struct DefaultDomainNameService;
 
 impl DomainNameService for DefaultDomainNameService {
-    fn add_cname_record(&self, cname: &str) -> Result<CnameRecord, CoreError> {
+    fn add_cname_record(&self, _cname: &str) -> Result<CnameRecord, CoreError> {
         todo!()
     }
 }
