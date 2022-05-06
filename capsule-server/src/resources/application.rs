@@ -11,7 +11,8 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-use actix_web::{http, post, Responder, web};
+use actix_web::{HttpRequest, HttpResponse, post, Responder, web};
+use actix_web::{body::BoxBody, http::header::ContentType};
 use serde::{Deserialize, Serialize};
 
 use capsule_core::application::Application;
@@ -30,6 +31,18 @@ pub struct ApplicationCreateResponse {
     git_repo_url: String,
 }
 
+impl Responder for ApplicationCreateResponse {
+    type Body = BoxBody;
+
+    fn respond_to(self, _req: &HttpRequest) -> HttpResponse<Self::Body> {
+        let body = serde_json::to_string(&self).unwrap();
+
+        HttpResponse::Created()
+            .content_type(ContentType::json())
+            .body(body)
+    }
+}
+
 impl Default for ApplicationCreateRequest {
     fn default() -> Self {
         Self {
@@ -39,7 +52,7 @@ impl Default for ApplicationCreateRequest {
 }
 
 #[post("/applications")]
-pub async fn create_application(request: web::Json<ApplicationCreateRequest>, context: web::Data<ServerContext>) -> impl Responder {
+pub async fn create_application(request: web::Json<ApplicationCreateRequest>, context: web::Data<ServerContext>) -> ApplicationCreateResponse {
     let user_name = "capsule".to_string();
 
     let git_service = context.git_service();
@@ -49,13 +62,11 @@ pub async fn create_application(request: web::Json<ApplicationCreateRequest>, co
     let git_repo = application.create_git_repository(git_service.as_ref()).unwrap();
     let cname_record = application.add_cname_record(context.domain_name_service().as_ref()).unwrap();
 
-    let response = ApplicationCreateResponse {
+    ApplicationCreateResponse {
         name: application.name.clone(),
         url: format!("https://{}", cname_record.domain_name),
         git_repo_url: git_repo.url,
-    };
-
-    (web::Json(response), http::StatusCode::CREATED)
+    }
 }
 
 #[cfg(test)]
@@ -73,7 +84,6 @@ mod tests {
 
         use capsule_core::application::{ApplicationError, GitRepository, GitService};
         use capsule_core::application::{CnameRecord, DomainNameService};
-        use capsule_core::CoreError;
 
         use crate::context::ServerContext;
         use crate::Settings;

@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 use capsule_core::application::{ApplicationError, CnameRecord, DomainNameService};
-use capsule_core::CoreError;
 
 pub struct DefaultDomainNameService;
 
