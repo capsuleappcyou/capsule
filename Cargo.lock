@@ -345,6 +345,7 @@ dependencies = [
  "anarchist-readable-name-generator-lib",
  "chrono",
  "config",
+ "derive_more",
  "diesel",
  "downcast-rs",
  "git2",

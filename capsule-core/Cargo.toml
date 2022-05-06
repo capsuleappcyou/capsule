@@ -31,6 +31,7 @@ rand = "0.8.5"
 git2 = "0.14.2"
 config = "0.13"
 anarchist-readable-name-generator-lib = "0.1.1"
+derive_more = "0.99.17"
 
 [dev-dependencies.test-tool]
 version = "0.1.0"

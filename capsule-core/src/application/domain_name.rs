@@ -15,7 +15,6 @@
 use mockall::{automock, predicate::*};
 
 use crate::application::ApplicationError;
-use crate::CoreError;
 
 #[cfg_attr(test, automock)]
 pub trait DomainNameService {

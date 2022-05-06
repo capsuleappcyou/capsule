@@ -1,5 +1,3 @@
-use std::fmt::Display;
-
 // Copyright 2022 the original author or authors.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,32 +12,25 @@ use std::fmt::Display;
 // See the License for the specific language governing permissions and
 // limitations under the License.
 use anarchist_readable_name_generator_lib::readable_name;
+use derive_more::{Display, Error};
 use rand::Rng;
 
 pub use implementation::postgres::postgres_repository::PostgresApplicationRepository;
 
 pub use crate::application::domain_name::{CnameRecord, DomainNameService};
 pub use crate::application::git::{GitRepository, GitService};
-use crate::CoreError;
 
 mod repository;
 mod implementation;
 mod git;
 mod domain_name;
 
-#[derive(Debug)]
+#[derive(Debug, Error, Display)]
 pub enum ApplicationError {
-    GitError(String),
-    DomainNameError(String),
-}
-
-impl Display for ApplicationError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            ApplicationError::GitError(message) => write!(f, "{}", message),
-            ApplicationError::DomainNameError(message) => write!(f, "{}", message),
-        }
-    }
+    #[display(fmt = "git error {}", message)]
+    GitError { message: String },
+    #[display(fmt = "domain name error {}", message)]
+    DomainNameError { message: String },
 }
 
 pub struct Application {
