@@ -15,9 +15,10 @@ use actix_web::{HttpRequest, HttpResponse, post, Responder, web};
 use actix_web::{body::BoxBody, http::header::ContentType};
 use serde::{Deserialize, Serialize};
 
-use capsule_core::application::Application;
+use capsule_core::application::{Application, ApplicationError};
 
 use crate::context::ServerContext;
+use crate::resources::ApiError;
 
 #[derive(Deserialize, Serialize)]
 pub struct ApplicationCreateRequest {
@@ -51,22 +52,32 @@ impl Default for ApplicationCreateRequest {
     }
 }
 
+impl From<ApplicationError> for ApiError {
+    fn from(e: ApplicationError) -> Self {
+        match e {
+            ApplicationError::GitError { message } => {
+                ApiError::ValidationFailed { message }
+            },
+            ApplicationError::DomainNameError{ message } => {
+                ApiError::ValidationFailed { message }
+            }
+        }
+    }
+}
+
 #[post("/applications")]
-pub async fn create_application(request: web::Json<ApplicationCreateRequest>, context: web::Data<ServerContext>) -> ApplicationCreateResponse {
+pub async fn create_application(request: web::Json<ApplicationCreateRequest>, context: web::Data<ServerContext>) -> Result<ApplicationCreateResponse, ApiError> {
     let user_name = "capsule".to_string();
-
     let git_service = context.git_service();
-
     let application = Application::new(request.name.clone(), user_name);
+    let git_repo = application.create_git_repository(git_service.as_ref())?;
+    let cname_record = application.add_cname_record(context.domain_name_service().as_ref())?;
 
-    let git_repo = application.create_git_repository(git_service.as_ref()).unwrap();
-    let cname_record = application.add_cname_record(context.domain_name_service().as_ref()).unwrap();
-
-    ApplicationCreateResponse {
+    Ok(ApplicationCreateResponse {
         name: application.name.clone(),
         url: format!("https://{}", cname_record.domain_name),
         git_repo_url: git_repo.url,
-    }
+    })
 }
 
 #[cfg(test)]
@@ -81,6 +92,7 @@ mod tests {
         use std::sync::Arc;
 
         use actix_web::middleware;
+        use actix_web::web::Bytes;
 
         use capsule_core::application::{ApplicationError, GitRepository, GitService};
         use capsule_core::application::{CnameRecord, DomainNameService};
@@ -92,12 +104,23 @@ mod tests {
 
         #[actix_web::test]
         async fn should_return_application_information_if_create_successfully() {
-            std::env::set_var("CAPSULE_CONFIG_SERVER_DIR", "./_fixture");
-            std::env::set_var("CAPSULE_SERVER_CONFIG_FILE", "capsule-server.toml");
+            struct GitServiceStub;
+            impl GitService for GitServiceStub {
+                fn create_repo(&self, _owner: &str, _app_name: &str) -> Result<GitRepository, ApplicationError> {
+                    Ok(GitRepository { url: "https://git.capsuleapp.cyou/capsule/first_capsule_application.git".to_string() })
+                }
+            }
+
+            struct DomainNameServiceStub;
+            impl DomainNameService for DomainNameServiceStub {
+                fn add_cname_record(&self, cname: &str) -> Result<CnameRecord, ApplicationError> {
+                    Ok(CnameRecord { domain_name: format!("{}.capsuleapp.cyou", cname) })
+                }
+            }
 
             let app =
                 test::init_service(App::new()
-                    .app_data(web::Data::new(context()))
+                    .app_data(web::Data::new(context(GitServiceStub, DomainNameServiceStub)))
                     .wrap(middleware::Logger::default())
                     .service(create_application))
                     .await;
@@ -119,15 +142,14 @@ mod tests {
 
             let body = test::read_body(resp).await;
             assert_eq!(actix_web::web::Bytes::from(expect_json), body);
-
-            std::env::remove_var("CAPSULE_SERVER__GIT_REPO__BASE_DIR");
         }
 
-        fn context() -> ServerContext {
+        #[actix_web::test]
+        async fn should_return_error_message_if_create_git_repository_failed() {
             struct GitServiceStub;
             impl GitService for GitServiceStub {
                 fn create_repo(&self, _owner: &str, _app_name: &str) -> Result<GitRepository, ApplicationError> {
-                    Ok(GitRepository { url: "https://git.capsuleapp.cyou/capsule/first_capsule_application.git".to_string() })
+                    Err(ApplicationError::GitError { message: "create git repository failed.".to_string() })
                 }
             }
 
@@ -138,10 +160,73 @@ mod tests {
                 }
             }
 
+            let app =
+                test::init_service(App::new()
+                    .app_data(web::Data::new(context(GitServiceStub, DomainNameServiceStub)))
+                    .wrap(middleware::Logger::default())
+                    .service(create_application))
+                    .await;
+
+            let req = test::TestRequest::post()
+                .uri("/applications")
+                .set_json(ApplicationCreateRequest { name: Some("first_capsule_application".to_string()) })
+                .to_request();
+
+            let resp = app.call(req).await.unwrap();
+            assert_eq!(resp.status(), http::StatusCode::UNPROCESSABLE_ENTITY);
+
+            let body = test::read_body(resp).await;
+
+            let expect = Bytes::from(r#"{"message":"create git repository failed."}"#);
+            assert_eq!(expect, body);
+        }
+
+        #[actix_web::test]
+        async fn should_return_message_if_add_cname_record_failed() {
+            struct GitServiceStub;
+            impl GitService for GitServiceStub {
+                fn create_repo(&self, _owner: &str, _app_name: &str) -> Result<GitRepository, ApplicationError> {
+                    Ok(GitRepository { url: "https://git.capsuleapp.cyou/capsule/first_capsule_application.git".to_string() })
+
+                }
+            }
+
+            struct DomainNameServiceStub;
+            impl DomainNameService for DomainNameServiceStub {
+                fn add_cname_record(&self, _cname: &str) -> Result<CnameRecord, ApplicationError> {
+                    Err(ApplicationError::DomainNameError {message: "add application domain record failed.".to_string()})
+                }
+            }
+
+            let app =
+                test::init_service(App::new()
+                    .app_data(web::Data::new(context(GitServiceStub, DomainNameServiceStub)))
+                    .wrap(middleware::Logger::default())
+                    .service(create_application))
+                    .await;
+
+            let req = test::TestRequest::post()
+                .uri("/applications")
+                .set_json(ApplicationCreateRequest { name: Some("first_capsule_application".to_string()) })
+                .to_request();
+
+            let resp = app.call(req).await.unwrap();
+            assert_eq!(resp.status(), http::StatusCode::UNPROCESSABLE_ENTITY);
+
+            let body = test::read_body(resp).await;
+
+            let expect = Bytes::from(r#"{"message":"add application domain record failed."}"#);
+            assert_eq!(expect, body);
+        }
+
+        fn context(git_service: impl GitService + 'static, domain_service: impl DomainNameService + 'static) -> ServerContext {
+            std::env::set_var("CAPSULE_CONFIG_SERVER_DIR", "./_fixture");
+            std::env::set_var("CAPSULE_SERVER_CONFIG_FILE", "capsule-server.toml");
+
             ServerContext {
                 settings: Arc::new(Settings::new()),
-                git_service: Arc::new(GitServiceStub),
-                domain_name_service: Arc::new(DomainNameServiceStub),
+                git_service: Arc::new(git_service),
+                domain_name_service: Arc::new(domain_service),
             }
         }
     }

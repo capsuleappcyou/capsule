@@ -378,6 +378,7 @@ dependencies = [
  "actix-web",
  "capsule-core",
  "config",
+ "derive_more",
  "git2",
  "serde",
  "serde_json",
