@@ -13,6 +13,7 @@
 // limitations under the License.
 #[cfg(test)]
 use mockall::{automock, predicate::*};
+
 use crate::application::ApplicationError;
 
 #[cfg_attr(test, automock)]

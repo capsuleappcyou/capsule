@@ -57,12 +57,12 @@ impl From<ApplicationError> for ApiError {
         match e {
             ApplicationError::GitError { message } => {
                 ApiError::ValidationFailed { message }
-            },
-            ApplicationError::DomainNameError{ message } => {
+            }
+            ApplicationError::DomainNameError { message } => {
                 ApiError::ValidationFailed { message }
             }
-            ApplicationError::InternalError {message} => {
-                ApiError::ValidationFailed { message }
+            ApplicationError::InternalError { message } => {
+                ApiError::InternalError { message }
             }
         }
     }
@@ -190,14 +190,13 @@ mod tests {
             impl GitService for GitServiceStub {
                 fn create_repo(&self, _owner: &str, _app_name: &str) -> Result<GitRepository, ApplicationError> {
                     Ok(GitRepository { uri: "https://git.capsuleapp.cyou/capsule/first_capsule_application.git".to_string() })
-
                 }
             }
 
             struct DomainNameServiceStub;
             impl DomainNameService for DomainNameServiceStub {
                 fn add_cname_record(&self, _cname: &str) -> Result<CnameRecord, ApplicationError> {
-                    Err(ApplicationError::DomainNameError {message: "add application domain record failed.".to_string()})
+                    Err(ApplicationError::DomainNameError { message: "add application domain record failed.".to_string() })
                 }
             }
 
@@ -219,6 +218,43 @@ mod tests {
             let body = test::read_body(resp).await;
 
             let expect = Bytes::from(r#"{"message":"add application domain record failed."}"#);
+            assert_eq!(expect, body);
+        }
+
+        #[actix_web::test]
+        async fn should_500_if_internal_error_happened() {
+            struct GitServiceStub;
+            impl GitService for GitServiceStub {
+                fn create_repo(&self, _owner: &str, _app_name: &str) -> Result<GitRepository, ApplicationError> {
+                    Ok(GitRepository { uri: "https://git.capsuleapp.cyou/capsule/first_capsule_application.git".to_string() })
+                }
+            }
+
+            struct DomainNameServiceStub;
+            impl DomainNameService for DomainNameServiceStub {
+                fn add_cname_record(&self, _cname: &str) -> Result<CnameRecord, ApplicationError> {
+                    Err(ApplicationError::InternalError { message: "internal error.".to_string() })
+                }
+            }
+
+            let app =
+                test::init_service(App::new()
+                    .app_data(web::Data::new(context(GitServiceStub, DomainNameServiceStub)))
+                    .wrap(middleware::Logger::default())
+                    .service(create_application))
+                    .await;
+
+            let req = test::TestRequest::post()
+                .uri("/applications")
+                .set_json(ApplicationCreateRequest { name: Some("first_capsule_application".to_string()) })
+                .to_request();
+
+            let resp = app.call(req).await.unwrap();
+            assert_eq!(resp.status(), http::StatusCode::INTERNAL_SERVER_ERROR);
+
+            let body = test::read_body(resp).await;
+
+            let expect = Bytes::from(r#"{"message":"internal error."}"#);
             assert_eq!(expect, body);
         }
 

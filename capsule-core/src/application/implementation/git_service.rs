@@ -35,19 +35,19 @@ pub struct DefaultGitService {
 
 impl From<Error> for ApplicationError {
     fn from(e: Error) -> Self {
-        ApplicationError::InternalError {message: e.to_string()}
+        ApplicationError::InternalError { message: e.to_string() }
     }
 }
 
 impl From<isahc::http::Error> for ApplicationError {
     fn from(e: isahc::http::Error) -> Self {
-        ApplicationError::InternalError {message: e.to_string()}
+        ApplicationError::InternalError { message: e.to_string() }
     }
 }
 
 impl From<isahc::Error> for ApplicationError {
     fn from(e: isahc::Error) -> Self {
-        ApplicationError::InternalError {message: e.to_string()}
+        ApplicationError::InternalError { message: e.to_string() }
     }
 }
 
@@ -79,8 +79,8 @@ impl GitService for DefaultGitService {
 mod tests {
     use wiremock::{Mock, MockServer, ResponseTemplate};
     use wiremock::matchers::{body_json, method, path};
-    use crate::application::{DefaultGitService, GitService};
 
+    use crate::application::{DefaultGitService, GitService};
     use crate::application::implementation::git_service::{CreateGitRepoRequest, CreateGitRepoResponse};
 
     #[async_std::test]

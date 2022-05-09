@@ -22,13 +22,20 @@ pub mod application;
 
 #[derive(Debug, Error)]
 pub enum ApiError {
-    ValidationFailed { message: String }
+    ValidationFailed { message: String },
+    InternalError { message: String },
 }
 
 impl Display for ApiError {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         let resp_json = match self {
             ApiError::ValidationFailed { message } => {
+                let mut response = HashMap::new();
+                response.insert("message", message);
+
+                serde_json::to_string(&response).unwrap()
+            }
+            ApiError::InternalError { message } => {
                 let mut response = HashMap::new();
                 response.insert("message", message);
 
@@ -44,6 +51,7 @@ impl error::ResponseError for ApiError {
     fn status_code(&self) -> StatusCode {
         match self {
             ApiError::ValidationFailed { message: _ } => StatusCode::UNPROCESSABLE_ENTITY,
+            ApiError::InternalError { message: _ } => StatusCode::INTERNAL_SERVER_ERROR,
         }
     }
 
