@@ -108,7 +108,7 @@ mod tests {
     }
 
     #[async_std::test]
-    async fn should_get_git_error_when_status_code_was_not_201() {
+    async fn should_get_git_service_error_when_status_code_was_not_201() {
         let mock_server = MockServer::start().await;
 
         Mock::given(method("POST"))
