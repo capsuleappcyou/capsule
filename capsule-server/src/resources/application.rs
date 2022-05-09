@@ -61,6 +61,9 @@ impl From<ApplicationError> for ApiError {
             ApplicationError::DomainNameError{ message } => {
                 ApiError::ValidationFailed { message }
             }
+            ApplicationError::InternalError {message} => {
+                ApiError::ValidationFailed { message }
+            }
         }
     }
 }
@@ -76,7 +79,7 @@ pub async fn create_application(request: web::Json<ApplicationCreateRequest>, co
     Ok(ApplicationCreateResponse {
         name: application.name.clone(),
         url: format!("https://{}", cname_record.domain_name),
-        git_repo_url: git_repo.url,
+        git_repo_url: git_repo.uri,
     })
 }
 
@@ -107,7 +110,7 @@ mod tests {
             struct GitServiceStub;
             impl GitService for GitServiceStub {
                 fn create_repo(&self, _owner: &str, _app_name: &str) -> Result<GitRepository, ApplicationError> {
-                    Ok(GitRepository { url: "https://git.capsuleapp.cyou/capsule/first_capsule_application.git".to_string() })
+                    Ok(GitRepository { uri: "https://git.capsuleapp.cyou/capsule/first_capsule_application.git".to_string() })
                 }
             }
 
@@ -186,7 +189,7 @@ mod tests {
             struct GitServiceStub;
             impl GitService for GitServiceStub {
                 fn create_repo(&self, _owner: &str, _app_name: &str) -> Result<GitRepository, ApplicationError> {
-                    Ok(GitRepository { url: "https://git.capsuleapp.cyou/capsule/first_capsule_application.git".to_string() })
+                    Ok(GitRepository { uri: "https://git.capsuleapp.cyou/capsule/first_capsule_application.git".to_string() })
 
                 }
             }

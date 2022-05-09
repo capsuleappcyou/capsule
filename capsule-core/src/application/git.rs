@@ -21,7 +21,7 @@ pub trait GitService {
 }
 
 pub struct GitRepository {
-    pub url: String,
+    pub uri: String,
 }
 
 

@@ -19,6 +19,7 @@ pub use implementation::postgres::postgres_repository::PostgresApplicationReposi
 
 pub use crate::application::domain_name::{CnameRecord, DomainNameService};
 pub use crate::application::git::{GitRepository, GitService};
+pub use crate::application::implementation::git_service::DefaultGitService;
 
 mod repository;
 mod implementation;
@@ -31,6 +32,8 @@ pub enum ApplicationError {
     GitError { message: String },
     #[display(fmt = "domain name error {}", message)]
     DomainNameError { message: String },
+    #[display(fmt = "internal error {}", message)]
+    InternalError { message: String },
 }
 
 pub struct Application {
@@ -97,11 +100,11 @@ mod tests {
         git_service.expect_create_repo()
             .with(eq("first_capsule_user"), eq("first_capsule_application"))
             .times(1)
-            .returning(|_, _| Ok(GitRepository { url: "https://git.test.com".to_string() }));
+            .returning(|_, _| Ok(GitRepository { uri: "https://git.test.com".to_string() }));
 
         let git_repo = application.create_git_repository(&git_service).expect("create git repo failed.");
 
-        assert_eq!(git_repo.url, "https://git.test.com");
+        assert_eq!(git_repo.uri, "https://git.test.com");
     }
 
     #[test]

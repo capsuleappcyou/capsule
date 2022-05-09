@@ -19,6 +19,8 @@ edition = "2021"
 [dev-dependencies]
 tempdir = "0.3.7"
 mockall = "0.11.0"
+wiremock = "0.5"
+async-std = { version = "1.9.0", features = ["attributes"] }
 
 [dependencies]
 downcast-rs = "1.2.0"
@@ -32,6 +34,7 @@ git2 = "0.14.2"
 config = "0.13"
 anarchist-readable-name-generator-lib = "0.1.1"
 derive_more = "0.99.17"
+isahc = { version = "1.7", features = ["json"] }
 
 [dev-dependencies.test-tool]
 version = "0.1.0"
