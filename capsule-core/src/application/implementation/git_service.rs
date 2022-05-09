@@ -66,7 +66,7 @@ impl GitService for DefaultGitService {
             .send()?;
 
         if response.status() != StatusCode::CREATED {
-            return Err(ApplicationError::GitError { message: "".to_string() });
+            return Err(ApplicationError::GitError { message: format!("response status {}", response.status()) });
         }
 
         let api_response = response.json::<CreateGitRepoResponse>()?;
@@ -105,5 +105,31 @@ mod tests {
         let git_repo = git_service.create_repo("first_capsule_user", "first_capsule_application").expect("create git repo failed");
 
         assert_eq!("https://first_capsule_application.capsuleapp.cyou", git_repo.uri)
+    }
+
+    #[async_std::test]
+    async fn should_get_git_error_when_status_code_was_not_201() {
+        let mock_server = MockServer::start().await;
+
+        Mock::given(method("POST"))
+            .and(path("/repositories"))
+            .and(body_json(CreateGitRepoRequest {
+                owner: "first_capsule_user".to_string(),
+                app_name: "first_capsule_application".to_string(),
+            }))
+            .respond_with(ResponseTemplate::new(400)
+                .set_body_json(CreateGitRepoResponse {
+                    uri: "https://first_capsule_application.capsuleapp.cyou".to_string()
+                }))
+            .mount(&mock_server)
+            .await;
+
+        let git_service = DefaultGitService { host_uri: mock_server.uri() };
+
+        let result = git_service.create_repo("first_capsule_user", "first_capsule_application");
+
+        assert!(result.is_err());
+        let error = result.err().unwrap();
+        assert_eq!("git service error response status 400 Bad Request", error.to_string())
     }
 }

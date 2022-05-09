@@ -28,7 +28,7 @@ mod domain_name;
 
 #[derive(Debug, Error, Display)]
 pub enum ApplicationError {
-    #[display(fmt = "git error {}", message)]
+    #[display(fmt = "git service error {}", message)]
     GitError { message: String },
     #[display(fmt = "domain name error {}", message)]
     DomainNameError { message: String },
