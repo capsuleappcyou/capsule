@@ -13,9 +13,8 @@
 // limitations under the License.
 use std::sync::Arc;
 
-use capsule_core::application::{DefaultGitService, DomainNameService, GitService};
+use capsule_core::application::{DefaultGitService, DomainNameService, GitService, NameCheapDomainNameService};
 
-use crate::implementation::domain_name_service::DefaultDomainNameService;
 use crate::settings::Settings;
 
 pub struct ServerContext {
@@ -28,7 +27,7 @@ impl ServerContext {
     pub fn new() -> Self {
         let settings = Arc::new(Settings::new());
         let git_service = Arc::new(DefaultGitService { host_uri: "".to_string() });
-        let domain_name_service = Arc::new(DefaultDomainNameService);
+        let domain_name_service = Arc::new(NameCheapDomainNameService);
 
         Self { settings, git_service, domain_name_service }
     }

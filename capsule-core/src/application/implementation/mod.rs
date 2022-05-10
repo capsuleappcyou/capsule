@@ -13,3 +13,4 @@
 // limitations under the License.
 pub(crate) mod postgres;
 pub mod git_service;
+pub mod domain_name_service;

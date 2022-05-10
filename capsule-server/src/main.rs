@@ -25,7 +25,6 @@ use crate::settings::Settings;
 
 mod resources;
 mod context;
-mod implementation;
 pub mod settings;
 
 #[actix_web::main]
