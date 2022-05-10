@@ -25,11 +25,14 @@ pub struct ServerContext {
 
 impl ServerContext {
     pub fn new() -> Self {
-        let settings = Arc::new(Settings::new());
-        let git_service = Arc::new(DefaultGitService { host_uri: "".to_string() });
+        let settings = Settings::new();
+
+        let git_service_uri = settings.git_service.uri.clone();
+        let git_service = Arc::new(DefaultGitService { host_uri: git_service_uri });
+
         let domain_name_service = Arc::new(NameCheapDomainNameService);
 
-        Self { settings, git_service, domain_name_service }
+        Self { settings: Arc::new(settings), git_service, domain_name_service }
     }
 
     pub fn settings(&self) -> Arc<Settings> {

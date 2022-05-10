@@ -1,3 +1,6 @@
 [server]
 listen_addr = "::"
 listen_port = 80
+
+[git]
+uri = "https://git-ctl.capsuleapp.cyou:7892"

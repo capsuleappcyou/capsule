@@ -23,8 +23,14 @@ pub struct Server {
 }
 
 #[derive(Deserialize)]
+pub struct GitService {
+    pub uri: String,
+}
+
+#[derive(Deserialize)]
 pub struct Settings {
     pub server: Server,
+    pub git_service: GitService,
 }
 
 impl Settings {
@@ -61,6 +67,13 @@ mod tests {
 
         assert_eq!(80, settings.server.listen_port);
         assert_eq!("::", settings.server.listen_addr);
+    }
+
+    #[test]
+    fn should_read_git_service_uri() {
+        let settings = settings();
+
+        assert_eq!("https://git-ctl.capsuleapp.cyou:7892", settings.git_service.uri);
     }
 
     fn settings() -> Settings {
