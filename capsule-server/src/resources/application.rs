@@ -28,8 +28,8 @@ pub struct ApplicationCreateRequest {
 #[derive(Deserialize, Serialize)]
 pub struct ApplicationCreateResponse {
     name: String,
-    url: String,
-    git_repo_url: String,
+    application_uri: String,
+    git_repo_uri: String,
 }
 
 impl Responder for ApplicationCreateResponse {
@@ -78,8 +78,8 @@ pub async fn create_application(request: web::Json<ApplicationCreateRequest>, co
 
     Ok(ApplicationCreateResponse {
         name: application.name.clone(),
-        url: format!("https://{}", cname_record.domain_name),
-        git_repo_url: git_repo.uri,
+        application_uri: format!("https://{}", cname_record.domain_name),
+        git_repo_uri: git_repo.uri,
     })
 }
 
@@ -91,7 +91,7 @@ mod tests {
     use super::*;
 
     #[cfg(test)]
-    mod create_application {
+    mod application {
         use std::sync::Arc;
 
         use actix_web::middleware;
@@ -138,8 +138,8 @@ mod tests {
 
             let expect = ApplicationCreateResponse {
                 name: "first_capsule_application".to_string(),
-                url: "https://first_capsule_application.capsuleapp.cyou".to_string(),
-                git_repo_url: "https://git.capsuleapp.cyou/capsule/first_capsule_application.git".to_string(),
+                application_uri: "https://first_capsule_application.capsuleapp.cyou".to_string(),
+                git_repo_uri: "https://git.capsuleapp.cyou/capsule/first_capsule_application.git".to_string(),
             };
             let expect_json = serde_json::to_string(&expect).unwrap();
 

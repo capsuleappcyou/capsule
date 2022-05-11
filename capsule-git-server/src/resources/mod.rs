@@ -12,26 +12,26 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 use std::collections::HashMap;
-use std::fmt::{Debug, Display, Formatter};
+use std::fmt::{Display, Formatter};
 
 use actix_web::{error, HttpResponse};
 use actix_web::http::StatusCode;
 use derive_more::Error;
 
-pub mod application;
+mod repository;
 
 #[derive(Debug, Error)]
 pub enum ApiError {
-    ValidationFailed { message: String },
+    RepoAlreadyExists { name: String },
     InternalError { message: String },
 }
 
 impl Display for ApiError {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         let resp_json = match self {
-            ApiError::ValidationFailed { message } => {
+            ApiError::RepoAlreadyExists { name } => {
                 let mut response = HashMap::new();
-                response.insert("message", message);
+                response.insert("message", format!("git repository {} already exists", name));
 
                 serde_json::to_string(&response).unwrap()
             }
@@ -50,7 +50,7 @@ impl Display for ApiError {
 impl error::ResponseError for ApiError {
     fn status_code(&self) -> StatusCode {
         match self {
-            ApiError::ValidationFailed { message: _ } => StatusCode::UNPROCESSABLE_ENTITY,
+            ApiError::RepoAlreadyExists { name: _ } => StatusCode::UNPROCESSABLE_ENTITY,
             ApiError::InternalError { message: _ } => StatusCode::INTERNAL_SERVER_ERROR,
         }
     }

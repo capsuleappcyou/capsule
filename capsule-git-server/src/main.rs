@@ -14,6 +14,7 @@
 mod context;
 mod settings;
 mod repo;
+mod resources;
 
 fn main() {}
 
