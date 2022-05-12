@@ -41,6 +41,6 @@ impl Responder for GitRepositoryCreateResponse {
 }
 
 #[post("/repositories")]
-pub async fn create_application(request: web::Json<ApplicationCreateRequest>, context: web::Data<GitServerContext>) -> Result<GitRepositoryCreateResponse, ApiError> {
+pub async fn create_application(_request: web::Json<ApplicationCreateRequest>, _context: web::Data<GitServerContext>) -> Result<GitRepositoryCreateResponse, ApiError> {
     todo!()
 }
