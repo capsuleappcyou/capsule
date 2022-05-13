@@ -13,16 +13,10 @@
 // limitations under the License.
 use std::env;
 
-use lazy_static::lazy_static;
-
 use crate::settings::Settings;
 
 pub struct GitServerContext {
     pub settings: Settings,
-}
-
-lazy_static! {
-    pub static ref CONTEXT: GitServerContext = GitServerContext::new();
 }
 
 impl GitServerContext {

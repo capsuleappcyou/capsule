@@ -16,14 +16,14 @@ use std::path::{Path, PathBuf};
 
 use git2::{Error, Repository};
 
-struct GitRepo {
-    user: String,
-    name: String,
-    directory: String,
+pub struct GitRepository {
+    pub user: String,
+    pub name: String,
+    pub directory: String,
 }
 
 #[derive(Debug, Clone)]
-struct GitRepoErr {
+pub struct GitRepoErr {
     message: String,
 }
 
@@ -39,7 +39,7 @@ impl From<std::io::Error> for GitRepoErr {
     }
 }
 
-impl GitRepo {
+impl GitRepository {
     pub fn new<P: AsRef<Path>>(user: &str, name: &str, dir: P) -> Self {
         let dir = dir.as_ref().to_str().unwrap();
 
@@ -80,13 +80,13 @@ mod tests {
 
     use tempdir::TempDir;
 
-    use crate::repo::GitRepo;
+    use crate::repo::GitRepository;
 
     #[test]
     fn should_init_git_bare_repo() {
         let repo_dir = TempDir::new("test").unwrap();
 
-        let git_repo = GitRepo::new("first_capsule_user", "first_capsule_application", repo_dir.path());
+        let git_repo = GitRepository::new("first_capsule_user", "first_capsule_application", repo_dir.path());
 
         git_repo.init_bare_repository().expect("init bare repo failed");
 
@@ -98,7 +98,7 @@ mod tests {
     fn should_install_git_hooks() {
         let repo_dir = TempDir::new("test").unwrap();
 
-        let git_repo = GitRepo::new("first_capsule_user", "first_capsule_application", repo_dir.path());
+        let git_repo = GitRepository::new("first_capsule_user", "first_capsule_application", repo_dir.path());
         git_repo.init_bare_repository().expect("init bare repo failed");
 
         let result = git_repo.install_git_hooks("./_fixture/git_hooks/", &vec!["TEST_HOOKS"]);

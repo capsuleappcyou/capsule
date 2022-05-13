@@ -539,7 +539,6 @@ dependencies = [
  "config",
  "derive_more",
  "git2",
- "lazy_static",
  "serde",
  "serde_json",
  "tempdir",
