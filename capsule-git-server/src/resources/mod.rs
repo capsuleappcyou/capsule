@@ -22,16 +22,16 @@ mod repository;
 
 #[derive(Debug, Error)]
 pub enum ApiError {
-    RepoAlreadyExists { name: String },
+    GitRepoError { message: String },
     InternalError { message: String },
 }
 
 impl Display for ApiError {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         let resp_json = match self {
-            ApiError::RepoAlreadyExists { name } => {
+            ApiError::GitRepoError { message } => {
                 let mut response = HashMap::new();
-                response.insert("message", format!("git repository {} already exists", name));
+                response.insert("message", format!("git repository {} already exists", message));
 
                 serde_json::to_string(&response).unwrap()
             }
@@ -50,7 +50,7 @@ impl Display for ApiError {
 impl error::ResponseError for ApiError {
     fn status_code(&self) -> StatusCode {
         match self {
-            ApiError::RepoAlreadyExists { name: _ } => StatusCode::UNPROCESSABLE_ENTITY,
+            ApiError::GitRepoError { message: _ } => StatusCode::UNPROCESSABLE_ENTITY,
             ApiError::InternalError { message: _ } => StatusCode::INTERNAL_SERVER_ERROR,
         }
     }

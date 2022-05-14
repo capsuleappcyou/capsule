@@ -127,11 +127,12 @@ mod tests {
     }
 
     fn context() -> GitServerContext {
-        remove_dir_all(PathBuf::new().join("/").join("tmp").join("git"));
-
         env::set_var("CAPSULE_GIT_CTL_CONFIG_DIR", "./_fixture");
-        env::set_var("CAPSULE_GIT_CTL__GIT_REPO__DIRECTORY", "/tmp/git");
 
-        GitServerContext::new()
+        let context = GitServerContext::new();
+
+        remove_dir_all(context.settings.git_repo.directory.clone().as_str());
+
+        context
     }
 }
