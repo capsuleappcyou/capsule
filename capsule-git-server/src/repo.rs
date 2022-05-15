@@ -23,19 +23,29 @@ pub struct GitRepository {
 }
 
 #[derive(Debug, Clone)]
+pub enum ErrorKind {
+    GitRepoAlreadyExists(String),
+    GitError(String),
+}
+
+#[derive(Debug, Clone)]
 pub struct GitRepoErr {
-    message: String,
+    pub error_kind: ErrorKind,
 }
 
 impl From<Error> for GitRepoErr {
     fn from(e: Error) -> Self {
-        Self { message: e.message().to_string() }
+        Self {
+            error_kind: ErrorKind::GitError(e.message().to_string())
+        }
     }
 }
 
 impl From<std::io::Error> for GitRepoErr {
     fn from(e: std::io::Error) -> Self {
-        Self { message: e.to_string() }
+        Self {
+            error_kind: ErrorKind::GitError(e.to_string())
+        }
     }
 }
 

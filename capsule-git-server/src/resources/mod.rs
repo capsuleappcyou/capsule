@@ -31,7 +31,7 @@ impl Display for ApiError {
         let resp_json = match self {
             ApiError::GitRepoError { message } => {
                 let mut response = HashMap::new();
-                response.insert("message", format!("git repository {} already exists", message));
+                response.insert("message", message);
 
                 serde_json::to_string(&response).unwrap()
             }
