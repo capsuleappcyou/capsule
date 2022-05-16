@@ -16,15 +16,18 @@ use std::path::{Path, PathBuf};
 
 use git2::{Error, Repository};
 
+use crate::repo::ErrorKind::{GitRepoAlreadyExists, GitRepoNotInitialized};
+
 pub struct GitRepository {
     pub user: String,
     pub name: String,
     pub directory: String,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum ErrorKind {
-    GitRepoAlreadyExists(String),
+    GitRepoAlreadyExists,
+    GitRepoNotInitialized,
     GitError(String),
 }
 
@@ -61,6 +64,10 @@ impl GitRepository {
     }
 
     pub fn init_bare_repository(&self) -> Result<(), GitRepoErr> {
+        if self.repo_path().exists() {
+            return Err(GitRepoErr { error_kind: GitRepoAlreadyExists });
+        }
+
         Repository::init_bare(self.repo_path())?;
 
         Ok(())
@@ -77,6 +84,10 @@ impl GitRepository {
             let from = PathBuf::new().join(&hooks_dir).join(hook_file);
             let to = self.repo_path().join("hooks").join(hook_file);
 
+            if !self.repo_path().join("hooks").exists() {
+                return Err(GitRepoErr { error_kind: GitRepoNotInitialized });
+            }
+
             copy(from, to)?;
         }
 
@@ -90,6 +101,7 @@ mod tests {
 
     use tempdir::TempDir;
 
+    use crate::repo::ErrorKind::{GitRepoAlreadyExists, GitRepoNotInitialized};
     use crate::repo::GitRepository;
 
     #[test]
@@ -116,5 +128,29 @@ mod tests {
 
         let path = git_repo.repo_path().join("hooks").join("TEST_HOOKS");
         assert_eq!(read_to_string(path).unwrap(), "this is a test hook file.")
+    }
+
+    #[test]
+    fn should_return_error_when_install_hooks_on_uninitialized_git_repo() {
+        let repo_dir = TempDir::new("test").unwrap();
+
+        let git_repo = GitRepository::new("first_capsule_user", "first_capsule_application", repo_dir.path());
+
+        let result = git_repo.install_git_hooks("./_fixture/git_hooks/", &vec!["TEST_HOOKS"]);
+        assert!(result.is_err());
+        assert_eq!(result.err().unwrap().error_kind, GitRepoNotInitialized);
+    }
+
+    #[test]
+    fn should_return_error_when_git_repo_already_exists() {
+        let repo_dir = TempDir::new("test").unwrap();
+
+        let git_repo = GitRepository::new("first_capsule_user", "first_capsule_application", repo_dir.path());
+        git_repo.init_bare_repository().expect("init bare repo failed");
+
+        let result = git_repo.init_bare_repository();
+
+        assert!(result.is_err());
+        assert_eq!(result.err().unwrap().error_kind, GitRepoAlreadyExists);
     }
 }
