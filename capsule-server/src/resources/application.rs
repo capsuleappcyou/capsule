@@ -98,7 +98,6 @@ mod tests {
     use crate::Settings;
 
     use super::*;
-    use super::*;
 
     #[actix_web::test]
     async fn should_return_application_information_if_create_successfully() {
