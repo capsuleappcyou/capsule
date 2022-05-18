@@ -26,6 +26,7 @@ mod repository;
 mod implementation;
 mod git;
 mod domain_name;
+mod applications;
 
 #[derive(Debug, Error, Display)]
 pub enum ApplicationError {
@@ -40,6 +41,14 @@ pub enum ApplicationError {
 pub struct Application {
     pub name: String,
     pub owner: String,
+}
+
+pub type ApplicationVisitor<T> = fn(&str, &str) -> T;
+
+impl Application {
+    pub fn accept<T>(&self, visitor: ApplicationVisitor<T>) -> T {
+        visitor(self.name.as_str(), self.owner.as_str())
+    }
 }
 
 impl Application {
@@ -121,5 +130,29 @@ mod tests {
         let cname_record = application.add_cname_record(&domain_name_service).expect("add cname record failed.");
 
         assert_eq!(cname_record.domain_name, "first_capsule_application.capsuleapp.cyou");
+    }
+
+    #[test]
+    fn should_call_application_visitor() {
+        let application = Application::new(Some("first_capsule_application".to_string()), "first_capsule_user".to_string());
+
+        let result = application.accept(test_saver).save();
+
+        assert_eq!(("first_capsule_application".to_string(), "first_capsule_user".to_string()), result)
+    }
+
+    struct Saver {
+        pub name: String,
+        pub owner: String,
+    }
+
+    impl Saver {
+        fn save(self) -> (String, String) {
+            (self.name, self.owner)
+        }
+    }
+
+    fn test_saver(name: &str, owner: &str) -> Saver {
+        Saver { name: name.to_string(), owner: owner.to_string() }
     }
 }

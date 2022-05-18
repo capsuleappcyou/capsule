@@ -11,17 +11,9 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-extern crate core;
-#[macro_use]
-extern crate diesel;
-#[macro_use]
-extern crate downcast_rs;
+use crate::application::Application;
+use crate::CoreError;
 
-pub mod user;
-pub mod application;
-
-#[derive(Debug, Clone)]
-pub struct CoreError {
-    message: String,
-
+pub trait Applications {
+    fn add(&self, application: &Application) -> Result<Application, CoreError>;
 }

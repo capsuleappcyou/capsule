@@ -14,3 +14,4 @@
 mod schema;
 mod models;
 pub(crate) mod postgres_repository;
+mod postgres_applications;
