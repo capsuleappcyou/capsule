@@ -85,6 +85,7 @@ fn to_application(saved_application: SavedApplication) -> Application {
     let application = Application {
         name: saved_application.application_name,
         owner: saved_application.owner,
+        updater: None,
     };
     application
 }
@@ -92,6 +93,7 @@ fn to_application(saved_application: SavedApplication) -> Application {
 #[cfg(test)]
 mod tests {
     use diesel::*;
+    use diesel::types::IsNull::No;
 
     use test_tool::get_test_db_connection;
 
@@ -109,7 +111,7 @@ mod tests {
 
         let new_application_name = "first_capsule_application";
         let owner_name = "first_capsule_user";
-        let application = Application { name: new_application_name.into(), owner: owner_name.into() };
+        let application = Application { name: new_application_name.into(), owner: owner_name.into(), updater: None };
 
         let result = repository.add(&application);
 
@@ -132,7 +134,7 @@ mod tests {
 
         let new_application_name = "first_capsule_application";
         let owner_name = "first_capsule_user";
-        let new_application = Application { name: new_application_name.into(), owner: owner_name.into() };
+        let new_application = Application { name: new_application_name.into(), owner: owner_name.into(), updater: None };
 
         repository.add(&new_application).expect("could not add application");
 
@@ -161,12 +163,12 @@ mod tests {
 
         let new_application_name = "first_application_name";
         let owner_name = "first_application_user";
-        let new_application = Application { name: new_application_name.into(), owner: owner_name.into() };
+        let new_application = Application { name: new_application_name.into(), owner: owner_name.into(), updater: None };
         repository.add(&new_application).expect("could not add application");
 
         let new_application_name = "second_application_name";
         let owner_name = "first_application_user";
-        let new_application = Application { name: new_application_name.into(), owner: owner_name.into() };
+        let new_application = Application { name: new_application_name.into(), owner: owner_name.into(), updater: None };
         repository.add(&new_application).expect("could not add application");
 
         let applications = repository.find_applications_by_owner_name("first_application_user").unwrap();
@@ -184,7 +186,7 @@ mod tests {
 
         let new_application_name = "first_application_name";
         let owner_name = "first_application_user";
-        let new_application = Application { name: new_application_name.into(), owner: owner_name.into() };
+        let new_application = Application { name: new_application_name.into(), owner: owner_name.into(), updater: None };
         repository.add(&new_application).expect("could not add application");
 
         let result = repository.add(&new_application);

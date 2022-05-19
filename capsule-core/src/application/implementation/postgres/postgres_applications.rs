@@ -1,3 +1,4 @@
+use std::thread::sleep;
 // Copyright 2022 the original author or authors.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,8 +16,9 @@ use std::time::SystemTime;
 
 use diesel::{insert_into, PgConnection, RunQueryDsl};
 use diesel::associations::HasTable;
+use diesel::pg::Pg;
 
-use crate::application::Application;
+use crate::application::{Application, ApplicationVisitor, Updater};
 use crate::application::applications::Applications;
 use crate::application::implementation::postgres::models::{NewApplication, SavedApplication};
 use crate::application::implementation::postgres::schema::capsule_applications;
@@ -33,12 +35,30 @@ impl<'a> PostgresApplications<'a> {
     }
 }
 
-struct Saver {
+impl<'a> Applications for PostgresApplications<'a> {
+    fn add(&self, application: &Application) -> Result<Application, CoreError> {
+        application.accept(persist).save(self.connection)
+    }
+}
+
+fn persist(name: &str, app_owner: &str) -> PgSaver {
+    PgSaver { name: name.to_string(), owner: app_owner.to_string() }
+}
+
+struct PgUpdater {}
+
+impl Updater for PgUpdater {
+    fn update(&self, application: &Application) {
+        todo!()
+    }
+}
+
+struct PgSaver {
     name: String,
     owner: String,
 }
 
-impl Saver {
+impl PgSaver {
     pub fn save(&self, connection: &PgConnection) -> Result<Application, CoreError> {
         let new_application = NewApplication {
             application_name: self.name.clone(),
@@ -50,17 +70,11 @@ impl Saver {
             .values(&new_application)
             .execute(connection)?;
 
-        Ok(Application { name: self.name.to_string(), owner: self.owner.to_string() })
-    }
-}
-
-fn persist(name: &str, app_owner: &str) -> Saver {
-    Saver { name: name.to_string(), owner: app_owner.to_string() }
-}
-
-impl<'a> Applications for PostgresApplications<'a> {
-    fn add(&self, application: &Application) -> Result<Application, CoreError> {
-        application.accept(persist).save(self.connection)
+        Ok(Application {
+            name: self.name.to_string(),
+            owner: self.owner.to_string(),
+            updater: Some(Box::new(PgUpdater {})),
+        })
     }
 }
 
@@ -94,5 +108,26 @@ mod tests {
         let saved_application = query_result.unwrap();
         assert_eq!(saved_application.application_name, "first_capsule_application".to_string());
         assert_eq!(saved_application.owner, "first_capsule_user".to_string());
+    }
+
+    #[test]
+    fn should_update_db_if_application_rename() {
+        let connection = &get_test_db_connection();
+
+        let applications = PostgresApplications::new(connection);
+
+        let application = Application::new(Some("first_capsule_application".to_string()), "first_capsule_user".to_string());
+
+        let mut application = applications.add(&application).expect("save application failed");
+
+        // application.rename("new_name");
+
+        // let query_result = capsule_applications
+        //     .filter(application_name.eq("new_name"))
+        //     .first::<SavedApplication>(connection);
+        //
+        // let saved_application = query_result.unwrap();
+        // assert_eq!(saved_application.application_name, "new_name".to_string());
+        // assert_eq!(saved_application.owner, "first_capsule_user".to_string());
     }
 }
