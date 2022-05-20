@@ -1,4 +1,3 @@
-use std::thread::sleep;
 // Copyright 2022 the original author or authors.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,9 +11,10 @@ use std::thread::sleep;
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+use std::sync::Arc;
 use std::time::SystemTime;
 
-use diesel::{insert_into, PgConnection, RunQueryDsl};
+use diesel::{ExpressionMethods, insert_into, PgConnection, QueryDsl, RunQueryDsl};
 use diesel::associations::HasTable;
 use diesel::pg::Pg;
 
@@ -25,61 +25,65 @@ use crate::application::implementation::postgres::schema::capsule_applications;
 use crate::application::implementation::postgres::schema::capsule_applications::dsl::*;
 use crate::CoreError;
 
-struct PostgresApplications<'a> {
-    connection: &'a PgConnection,
+struct PostgresApplications {
+    connection: Arc<PgConnection>,
 }
 
-impl<'a> PostgresApplications<'a> {
-    pub fn new(connection: &'a PgConnection) -> PostgresApplications {
+impl PostgresApplications {
+    pub fn new(connection: Arc<PgConnection>) -> PostgresApplications {
         PostgresApplications { connection }
     }
 }
 
-impl<'a> Applications for PostgresApplications<'a> {
+impl Applications for PostgresApplications {
     fn add(&self, application: &Application) -> Result<Application, CoreError> {
-        application.accept(persist).save(self.connection)
-    }
-}
-
-fn persist(name: &str, app_owner: &str) -> PgSaver {
-    PgSaver { name: name.to_string(), owner: app_owner.to_string() }
-}
-
-struct PgUpdater {}
-
-impl Updater for PgUpdater {
-    fn update(&self, application: &Application) {
-        todo!()
-    }
-}
-
-struct PgSaver {
-    name: String,
-    owner: String,
-}
-
-impl PgSaver {
-    pub fn save(&self, connection: &PgConnection) -> Result<Application, CoreError> {
-        let new_application = NewApplication {
-            application_name: self.name.clone(),
-            owner: self.owner.clone(),
-            create_at: SystemTime::now(),
-        };
+        let new_application = application.accept(new_application);
 
         insert_into(capsule_applications::table)
             .values(&new_application)
-            .execute(connection)?;
+            .execute(self.connection.as_ref())?;
 
         Ok(Application {
-            name: self.name.to_string(),
-            owner: self.owner.to_string(),
-            updater: Some(Box::new(PgUpdater {})),
+            name: new_application.application_name.clone(),
+            owner: new_application.owner.clone(),
+            updater: Some(Box::new(PgUpdater { connection: self.connection.clone() })),
         })
+    }
+}
+
+fn new_application(name: &str, app_owner: &str) -> NewApplication {
+    NewApplication {
+        application_name: name.to_string(),
+        owner: app_owner.to_string(),
+        create_at: SystemTime::now(),
+    }
+}
+
+struct PgUpdater {
+    connection: Arc<PgConnection>,
+}
+
+impl Updater for PgUpdater {
+    fn update(&self, application: &Application) {
+        let app_name = application.accept(PgUpdater::get_name);
+
+        diesel::update(capsule_applications.filter(application_name.eq("first_capsule_application".to_string())))
+            .set(application_name.eq(app_name))
+            .execute(self.connection.as_ref())
+            .expect("");
+    }
+}
+
+impl PgUpdater {
+    fn get_name(name: &str, _: &str) -> String {
+        name.to_string()
     }
 }
 
 #[cfg(test)]
 mod tests {
+    use std::sync::Arc;
+
     use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl};
 
     use test_tool::get_test_db_connection;
@@ -93,9 +97,9 @@ mod tests {
 
     #[test]
     fn should_save_application_to_db() {
-        let connection = &get_test_db_connection();
+        let connection = Arc::new(get_test_db_connection());
 
-        let applications = PostgresApplications::new(connection);
+        let applications = PostgresApplications::new(connection.clone());
 
         let application = Application::new(Some("first_capsule_application".to_string()), "first_capsule_user".to_string());
 
@@ -103,7 +107,7 @@ mod tests {
 
         let query_result = capsule_applications
             .filter(application_name.eq("first_capsule_application"))
-            .first::<SavedApplication>(connection);
+            .first::<SavedApplication>(connection.as_ref());
 
         let saved_application = query_result.unwrap();
         assert_eq!(saved_application.application_name, "first_capsule_application".to_string());
@@ -112,22 +116,22 @@ mod tests {
 
     #[test]
     fn should_update_db_if_application_rename() {
-        let connection = &get_test_db_connection();
+        let connection = Arc::new(get_test_db_connection());
 
-        let applications = PostgresApplications::new(connection);
+        let applications = PostgresApplications::new(connection.clone());
 
         let application = Application::new(Some("first_capsule_application".to_string()), "first_capsule_user".to_string());
 
         let mut application = applications.add(&application).expect("save application failed");
 
-        // application.rename("new_name");
+        application.rename("new_name");
 
-        // let query_result = capsule_applications
-        //     .filter(application_name.eq("new_name"))
-        //     .first::<SavedApplication>(connection);
-        //
-        // let saved_application = query_result.unwrap();
-        // assert_eq!(saved_application.application_name, "new_name".to_string());
-        // assert_eq!(saved_application.owner, "first_capsule_user".to_string());
+        let query_result = capsule_applications
+            .filter(application_name.eq("new_name"))
+            .first::<SavedApplication>(connection.clone().as_ref());
+
+        let saved_application = query_result.unwrap();
+        assert_eq!(saved_application.application_name, "new_name".to_string());
+        assert_eq!(saved_application.owner, "first_capsule_user".to_string());
     }
 }

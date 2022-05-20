@@ -28,7 +28,6 @@ mod implementation;
 mod git;
 mod domain_name;
 mod applications;
-mod application_factory;
 
 #[derive(Debug, Error, Display)]
 pub enum ApplicationError {
@@ -95,17 +94,12 @@ mod tests {
     use mockall::predicate::eq;
 
     use crate::application::{Application, GitRepository};
-    use crate::application::application_factory::ApplicationFactory;
     use crate::application::domain_name::{CnameRecord, MockDomainNameService};
     use crate::application::git::MockGitService;
 
-    fn application_factory() -> impl ApplicationFactory {
-        NormalApplicationFactory
-    }
-
     #[test]
     fn should_generate_application_name_if_not_given_application_name() {
-        let application = application_factory().create(None, "first_capsule_user".to_string());
+        let application =   Application::new(None, "first_capsule_user".to_string());
 
         println!("{}", &application.name);
         assert_eq!(application.name.is_empty(), false);
@@ -114,14 +108,14 @@ mod tests {
     #[test]
     fn should_use_given_application_name_if_give_application_name() {
         let name = Some("first_capsule_application".to_string());
-        let application = application_factory().create(name, "first_capsule_user".to_string());
+        let application =  Application::new(name, "first_capsule_user".to_string());
 
         assert_eq!(application.name, "first_capsule_application");
     }
 
     #[test]
     fn should_call_git_service_to_create_git_repo() {
-        let application = application_factory().create(Some("first_capsule_application".to_string()), "first_capsule_user".to_string());
+        let application =  Application::new(Some("first_capsule_application".to_string()), "first_capsule_user".to_string());
         let mut git_service = MockGitService::new();
 
         git_service.expect_create_repo()
@@ -136,7 +130,7 @@ mod tests {
 
     #[test]
     fn should_call_domain_name_service_to_create_cname_record() {
-        let application = application_factory().create(Some("first_capsule_application".to_string()), "first_capsule_user".to_string());
+        let application =  Application::new(Some("first_capsule_application".to_string()), "first_capsule_user".to_string());
         let mut domain_name_service = MockDomainNameService::new();
 
         domain_name_service.expect_add_cname_record()
@@ -151,7 +145,7 @@ mod tests {
 
     #[test]
     fn should_call_application_visitor() {
-        let application = application_factory().create(Some("first_capsule_application".to_string()), "first_capsule_user".to_string());
+        let application =  Application::new(Some("first_capsule_application".to_string()), "first_capsule_user".to_string());
 
         let result = application.accept(test_saver).save();
 
@@ -160,7 +154,7 @@ mod tests {
 
     #[test]
     fn should_rename_application() {
-        let mut application = application_factory().create(Some("first_capsule_application".to_string()), "first_capsule_user".to_string());
+        let mut application =  Application::new(Some("first_capsule_application".to_string()), "first_capsule_user".to_string());
 
         application.rename("new_name");
 
@@ -180,13 +174,5 @@ mod tests {
 
     fn test_saver(name: &str, owner: &str) -> Saver {
         Saver { name: name.to_string(), owner: owner.to_string() }
-    }
-
-    struct NormalApplicationFactory;
-
-    impl ApplicationFactory for NormalApplicationFactory {
-        fn create(&self, name: Option<String>, owner: String) -> Application {
-            Application::new(name, owner)
-        }
     }
 }
