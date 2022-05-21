@@ -13,7 +13,6 @@
 // limitations under the License.
 use anarchist_readable_name_generator_lib::readable_name;
 use derive_more::{Display, Error};
-use diesel::update;
 use rand::Rng;
 
 pub use implementation::postgres::postgres_repository::PostgresApplicationRepository;
