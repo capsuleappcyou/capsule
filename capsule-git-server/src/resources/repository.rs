@@ -66,7 +66,7 @@ mod tests {
     use std::path::PathBuf;
 
     use actix_web::{App, http::{self}, middleware, test, web};
-    use actix_web::dev::{Path, Service};
+    use actix_web::dev::Service;
     use tempdir::TempDir;
 
     use crate::context::GitServerContext;
