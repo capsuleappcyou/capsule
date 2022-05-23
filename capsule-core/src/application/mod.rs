@@ -20,7 +20,6 @@ pub use crate::application::git::{GitRepository, GitService};
 pub use crate::application::implementation::domain_name_service::NameCheapDomainNameService;
 pub use crate::application::implementation::git_service::DefaultGitService;
 
-mod repository;
 mod implementation;
 mod git;
 mod domain_name;
