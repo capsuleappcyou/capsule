@@ -41,6 +41,7 @@ impl<'a> ApplicationRepository for PostgresApplicationRepository<'a> {
         }
 
         let new_application = NewApplication {
+            application_id: application.id,
             application_name: application.name.clone(),
             owner: application.owner.clone(),
             create_at: SystemTime::now(),
@@ -83,6 +84,7 @@ impl<'a> ApplicationRepository for PostgresApplicationRepository<'a> {
 
 fn to_application(saved_application: SavedApplication) -> Application {
     let application = Application {
+        id: saved_application.application_id,
         name: saved_application.application_name,
         owner: saved_application.owner,
         updater: None,
@@ -111,7 +113,7 @@ mod tests {
 
         let new_application_name = "first_capsule_application";
         let owner_name = "first_capsule_user";
-        let application = Application { name: new_application_name.into(), owner: owner_name.into(), updater: None };
+        let application = Application { name: new_application_name.into(), owner: owner_name.into(), updater: None, id: 1 };
 
         let result = repository.add(&application);
 
@@ -134,7 +136,7 @@ mod tests {
 
         let new_application_name = "first_capsule_application";
         let owner_name = "first_capsule_user";
-        let new_application = Application { name: new_application_name.into(), owner: owner_name.into(), updater: None };
+        let new_application = Application { name: new_application_name.into(), owner: owner_name.into(), updater: None, id: 1 };
 
         repository.add(&new_application).expect("could not add application");
 
@@ -163,12 +165,12 @@ mod tests {
 
         let new_application_name = "first_application_name";
         let owner_name = "first_application_user";
-        let new_application = Application { name: new_application_name.into(), owner: owner_name.into(), updater: None };
+        let new_application = Application { name: new_application_name.into(), owner: owner_name.into(), updater: None, id: 1 };
         repository.add(&new_application).expect("could not add application");
 
         let new_application_name = "second_application_name";
         let owner_name = "first_application_user";
-        let new_application = Application { name: new_application_name.into(), owner: owner_name.into(), updater: None };
+        let new_application = Application { name: new_application_name.into(), owner: owner_name.into(), updater: None, id: 2 };
         repository.add(&new_application).expect("could not add application");
 
         let applications = repository.find_applications_by_owner_name("first_application_user").unwrap();
@@ -186,7 +188,7 @@ mod tests {
 
         let new_application_name = "first_application_name";
         let owner_name = "first_application_user";
-        let new_application = Application { name: new_application_name.into(), owner: owner_name.into(), updater: None };
+        let new_application = Application { name: new_application_name.into(), owner: owner_name.into(), updater: None, id: 1 };
         repository.add(&new_application).expect("could not add application");
 
         let result = repository.add(&new_application);

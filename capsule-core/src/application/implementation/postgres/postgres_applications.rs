@@ -44,6 +44,7 @@ impl Applications for PostgresApplications {
             .execute(self.connection.as_ref())?;
 
         Ok(Application {
+            id: new_application.application_id,
             name: new_application.application_name.clone(),
             owner: new_application.owner.clone(),
             updater: Some(Box::new(PgUpdater { connection: self.connection.clone() })),
@@ -53,6 +54,7 @@ impl Applications for PostgresApplications {
 
 fn new_application(name: &str, app_owner: &str) -> NewApplication {
     NewApplication {
+        application_id: 1,
         application_name: name.to_string(),
         owner: app_owner.to_string(),
         create_at: SystemTime::now(),

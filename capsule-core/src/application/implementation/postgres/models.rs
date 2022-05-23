@@ -5,6 +5,7 @@ use super::schema::capsule_applications;
 #[derive(Queryable)]
 pub struct SavedApplication {
     pub id: i32,
+    pub application_id: i64,
     pub application_name: String,
     pub owner: String,
     pub create_at: SystemTime,
@@ -13,6 +14,7 @@ pub struct SavedApplication {
 #[derive(Insertable)]
 #[table_name = "capsule_applications"]
 pub struct NewApplication {
+    pub application_id: i64,
     pub application_name: String,
     pub owner: String,
     pub create_at: SystemTime,

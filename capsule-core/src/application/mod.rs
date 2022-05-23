@@ -40,6 +40,7 @@ pub enum ApplicationError {
 
 pub struct Application {
     pub name: String,
+    pub id: i64,
     pub owner: String,
     updater: Option<Box<dyn Updater>>,
 }
@@ -57,7 +58,7 @@ impl Application {
             _ => Self::random_name(),
         };
 
-        Self { name, owner, updater: None }
+        Self { name, owner, updater: None, id: 1 }
     }
 
     fn random_name() -> String {
@@ -98,7 +99,7 @@ mod tests {
 
     #[test]
     fn should_generate_application_name_if_not_given_application_name() {
-        let application =   Application::new(None, "first_capsule_user".to_string());
+        let application = Application::new(None, "first_capsule_user".to_string());
 
         println!("{}", &application.name);
         assert_eq!(application.name.is_empty(), false);
@@ -107,14 +108,14 @@ mod tests {
     #[test]
     fn should_use_given_application_name_if_give_application_name() {
         let name = Some("first_capsule_application".to_string());
-        let application =  Application::new(name, "first_capsule_user".to_string());
+        let application = Application::new(name, "first_capsule_user".to_string());
 
         assert_eq!(application.name, "first_capsule_application");
     }
 
     #[test]
     fn should_call_git_service_to_create_git_repo() {
-        let application =  Application::new(Some("first_capsule_application".to_string()), "first_capsule_user".to_string());
+        let application = Application::new(Some("first_capsule_application".to_string()), "first_capsule_user".to_string());
         let mut git_service = MockGitService::new();
 
         git_service.expect_create_repo()
@@ -129,7 +130,7 @@ mod tests {
 
     #[test]
     fn should_call_domain_name_service_to_create_cname_record() {
-        let application =  Application::new(Some("first_capsule_application".to_string()), "first_capsule_user".to_string());
+        let application = Application::new(Some("first_capsule_application".to_string()), "first_capsule_user".to_string());
         let mut domain_name_service = MockDomainNameService::new();
 
         domain_name_service.expect_add_cname_record()
@@ -144,7 +145,7 @@ mod tests {
 
     #[test]
     fn should_call_application_visitor() {
-        let application =  Application::new(Some("first_capsule_application".to_string()), "first_capsule_user".to_string());
+        let application = Application::new(Some("first_capsule_application".to_string()), "first_capsule_user".to_string());
 
         let result = application.accept(test_saver).save();
 
@@ -153,7 +154,7 @@ mod tests {
 
     #[test]
     fn should_rename_application() {
-        let mut application =  Application::new(Some("first_capsule_application".to_string()), "first_capsule_user".to_string());
+        let mut application = Application::new(Some("first_capsule_application".to_string()), "first_capsule_user".to_string());
 
         application.rename("new_name");
 
