@@ -47,7 +47,7 @@ pub trait Updater {
     fn update(&self, application: &Application);
 }
 
-pub type ApplicationVisitor<T> = fn(&str, &str) -> T;
+pub type ApplicationVisitor<T> = fn(id: i64, &str, &str) -> T;
 
 impl Application {
     pub fn new(new_app_name: Option<String>, owner: String) -> Self {
@@ -75,7 +75,7 @@ impl Application {
     }
 
     pub fn accept<T>(&self, visitor: ApplicationVisitor<T>) -> T {
-        visitor(self.name.as_str(), self.owner.as_str())
+        visitor(self.id, self.name.as_str(), self.owner.as_str())
     }
 
     pub fn rename(&mut self, new_name: &str) {
@@ -170,7 +170,7 @@ mod tests {
         }
     }
 
-    fn test_saver(name: &str, owner: &str) -> Saver {
+    fn test_saver(app_id: i64, name: &str, owner: &str) -> Saver {
         Saver { name: name.to_string(), owner: owner.to_string() }
     }
 }

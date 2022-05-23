@@ -59,9 +59,9 @@ impl Applications for PostgresApplications {
     }
 }
 
-fn new_application(name: &str, app_owner: &str) -> NewApplication {
+fn new_application(app_id: i64, name: &str, app_owner: &str) -> NewApplication {
     NewApplication {
-        application_id: 1,
+        application_id: app_id,
         application_name: name.to_string(),
         owner: app_owner.to_string(),
         create_at: SystemTime::now(),
@@ -84,7 +84,7 @@ impl Updater for PgUpdater {
 }
 
 impl PgUpdater {
-    fn get_name(name: &str, _: &str) -> String {
+    fn get_name(_:i64, name: &str, _: &str) -> String {
         name.to_string()
     }
 }
