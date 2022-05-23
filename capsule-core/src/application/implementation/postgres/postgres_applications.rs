@@ -17,6 +17,7 @@ use std::time::SystemTime;
 use diesel::{ExpressionMethods, insert_into, PgConnection, QueryDsl, RunQueryDsl};
 use diesel::associations::HasTable;
 use diesel::pg::Pg;
+use diesel::result::Error;
 
 use crate::application::{Application, ApplicationVisitor, Updater};
 use crate::application::applications::Applications;
@@ -32,6 +33,12 @@ struct PostgresApplications {
 impl PostgresApplications {
     pub fn new(connection: Arc<PgConnection>) -> PostgresApplications {
         PostgresApplications { connection }
+    }
+}
+
+impl From<Error> for CoreError {
+    fn from(_: Error) -> Self {
+        todo!()
     }
 }
 

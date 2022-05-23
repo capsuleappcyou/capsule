@@ -15,8 +15,6 @@ use anarchist_readable_name_generator_lib::readable_name;
 use derive_more::{Display, Error};
 use rand::Rng;
 
-pub use implementation::postgres::postgres_repository::PostgresApplicationRepository;
-
 pub use crate::application::domain_name::{CnameRecord, DomainNameService};
 pub use crate::application::git::{GitRepository, GitService};
 pub use crate::application::implementation::domain_name_service::NameCheapDomainNameService;
