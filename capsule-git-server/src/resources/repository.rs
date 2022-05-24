@@ -102,30 +102,6 @@ mod tests {
         assert_eq!(expect_json, body);
     }
 
-    #[actix_web::test]
-    async fn should_create_git_repo() {
-        let app =
-            test::init_service(App::new()
-                .app_data(web::Data::new(context()))
-                .wrap(middleware::Logger::default())
-                .service(create_repository))
-                .await;
-
-        let req = test::TestRequest::post()
-            .uri("/repositories")
-            .set_json(GitRepoCreateRequest {
-                name: "first_capsule_application".to_string(),
-                user: "capsule".to_string(),
-            })
-            .to_request();
-
-        let resp = app.call(req).await.unwrap();
-        assert_eq!(resp.status(), http::StatusCode::CREATED);
-
-        let repo_hooks_path = PathBuf::from("/tmp/git/").join("capsule").join("first_capsule_application.git").join("hooks");
-        assert!(repo_hooks_path.exists());
-    }
-
     fn context() -> GitServerContext {
         env::set_var("CAPSULE_GIT_CTL_CONFIG_DIR", "./_fixture");
 

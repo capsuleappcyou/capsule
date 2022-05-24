@@ -1,3 +1,5 @@
+use std::time::SystemTime;
+
 // Copyright 2022 the original author or authors.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -71,15 +73,19 @@ impl From<ApplicationError> for ApiError {
 pub async fn create_application(request: web::Json<ApplicationCreateRequest>, context: web::Data<ServerContext>) -> Result<ApplicationCreateResponse, ApiError> {
     let user_name = "capsule".to_string();
     let git_service = context.git_service();
-    let application = Application::new(request.name.clone(), user_name);
+    let application = Application::new(1, request.name.clone(), user_name);
     let git_repo = application.create_git_repository(git_service.as_ref())?;
     let cname_record = application.add_cname_record(context.domain_name_service().as_ref())?;
 
     Ok(ApplicationCreateResponse {
-        name: application.name.clone(),
+        name: application.accept(get_application_name),
         application_uri: format!("https://{}", cname_record.domain_name),
         git_repo_uri: git_repo.uri,
     })
+}
+
+fn get_application_name(_: i64, name: &str, _: &str, _: SystemTime) -> String {
+    name.to_string()
 }
 
 #[cfg(test)]

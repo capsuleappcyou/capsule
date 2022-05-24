@@ -54,17 +54,18 @@ impl Applications for PostgresApplications {
             id: new_application.application_id,
             name: new_application.application_name.clone(),
             owner: new_application.owner.clone(),
+            create_at: application.create_at.clone(),
             updater: Some(Box::new(PgUpdater { connection: self.connection.clone() })),
         })
     }
 }
 
-fn new_application(app_id: i64, name: &str, app_owner: &str) -> NewApplication {
+fn new_application(app_id: i64, name: &str, app_owner: &str, app_create_at: SystemTime) -> NewApplication {
     NewApplication {
         application_id: app_id,
         application_name: name.to_string(),
         owner: app_owner.to_string(),
-        create_at: SystemTime::now(),
+        create_at: app_create_at,
     }
 }
 
@@ -74,17 +75,21 @@ struct PgUpdater {
 
 impl Updater for PgUpdater {
     fn update(&self, application: &Application) {
-        let app_name = application.accept(PgUpdater::get_name);
+        let app_id = application.accept(PgUpdater::get_application_id);
 
-        diesel::update(capsule_applications.filter(application_name.eq("first_capsule_application".to_string())))
-            .set(application_name.eq(app_name))
+        diesel::update(capsule_applications.filter(application_id.eq(app_id)))
+            .set(application_name.eq(application.accept(PgUpdater::get_application_name)))
             .execute(self.connection.as_ref())
             .expect("");
     }
 }
 
 impl PgUpdater {
-    fn get_name(_:i64, name: &str, _: &str) -> String {
+    fn get_application_id(app_id: i64, name: &str, _: &str, _: SystemTime) -> i64 {
+        app_id
+    }
+
+    fn get_application_name(app_id: i64, name: &str, _: &str, _: SystemTime) -> String {
         name.to_string()
     }
 }
@@ -110,7 +115,7 @@ mod tests {
 
         let applications = PostgresApplications::new(connection.clone());
 
-        let application = Application::new(Some("first_capsule_application".to_string()), "first_capsule_user".to_string());
+        let application = Application::new(1, Some("first_capsule_application".to_string()), "first_capsule_user".to_string());
 
         applications.add(&application);
 
@@ -119,6 +124,7 @@ mod tests {
             .first::<SavedApplication>(connection.as_ref());
 
         let saved_application = query_result.unwrap();
+        assert_eq!(saved_application.application_id, 1);
         assert_eq!(saved_application.application_name, "first_capsule_application".to_string());
         assert_eq!(saved_application.owner, "first_capsule_user".to_string());
     }
@@ -129,7 +135,7 @@ mod tests {
 
         let applications = PostgresApplications::new(connection.clone());
 
-        let application = Application::new(Some("first_capsule_application".to_string()), "first_capsule_user".to_string());
+        let application = Application::new(1, Some("first_capsule_application".to_string()), "first_capsule_user".to_string());
 
         let mut application = applications.add(&application).expect("save application failed");
 
@@ -140,6 +146,7 @@ mod tests {
             .first::<SavedApplication>(connection.clone().as_ref());
 
         let saved_application = query_result.unwrap();
+        assert_eq!(saved_application.application_id, 1);
         assert_eq!(saved_application.application_name, "new_name".to_string());
         assert_eq!(saved_application.owner, "first_capsule_user".to_string());
     }

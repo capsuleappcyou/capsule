@@ -11,6 +11,8 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+use std::time::SystemTime;
+
 use anarchist_readable_name_generator_lib::readable_name;
 use derive_more::{Display, Error};
 use rand::Rng;
@@ -36,9 +38,10 @@ pub enum ApplicationError {
 }
 
 pub struct Application {
-    pub name: String,
-    pub id: i64,
-    pub owner: String,
+    name: String,
+    id: i64,
+    owner: String,
+    create_at: SystemTime,
     updater: Option<Box<dyn Updater>>,
 }
 
@@ -46,16 +49,16 @@ pub trait Updater {
     fn update(&self, application: &Application);
 }
 
-pub type ApplicationVisitor<T> = fn(id: i64, &str, &str) -> T;
+pub type ApplicationVisitor<T> = fn(id: i64, &str, &str, create_at: SystemTime) -> T;
 
 impl Application {
-    pub fn new(new_app_name: Option<String>, owner: String) -> Self {
+    pub fn new(id: i64, new_app_name: Option<String>, owner: String) -> Self {
         let name = match new_app_name {
             Some(app_name) => app_name,
             _ => Self::random_name(),
         };
 
-        Self { name, owner, updater: None, id: 1 }
+        Self { name, owner, updater: None, id, create_at: SystemTime::now() }
     }
 
     fn random_name() -> String {
@@ -74,7 +77,7 @@ impl Application {
     }
 
     pub fn accept<T>(&self, visitor: ApplicationVisitor<T>) -> T {
-        visitor(self.id, self.name.as_str(), self.owner.as_str())
+        visitor(self.id, self.name.as_str(), self.owner.as_str(), self.create_at)
     }
 
     pub fn rename(&mut self, new_name: &str) {
@@ -88,6 +91,8 @@ impl Application {
 
 #[cfg(test)]
 mod tests {
+    use std::time::SystemTime;
+
     use mockall::predicate::eq;
 
     use crate::application::{Application, GitRepository};
@@ -96,7 +101,7 @@ mod tests {
 
     #[test]
     fn should_generate_application_name_if_not_given_application_name() {
-        let application = Application::new(None, "first_capsule_user".to_string());
+        let application = Application::new(1, None, "first_capsule_user".to_string());
 
         println!("{}", &application.name);
         assert_eq!(application.name.is_empty(), false);
@@ -105,14 +110,14 @@ mod tests {
     #[test]
     fn should_use_given_application_name_if_give_application_name() {
         let name = Some("first_capsule_application".to_string());
-        let application = Application::new(name, "first_capsule_user".to_string());
+        let application = Application::new(1, name, "first_capsule_user".to_string());
 
         assert_eq!(application.name, "first_capsule_application");
     }
 
     #[test]
     fn should_call_git_service_to_create_git_repo() {
-        let application = Application::new(Some("first_capsule_application".to_string()), "first_capsule_user".to_string());
+        let application = Application::new(1, Some("first_capsule_application".to_string()), "first_capsule_user".to_string());
         let mut git_service = MockGitService::new();
 
         git_service.expect_create_repo()
@@ -127,7 +132,7 @@ mod tests {
 
     #[test]
     fn should_call_domain_name_service_to_create_cname_record() {
-        let application = Application::new(Some("first_capsule_application".to_string()), "first_capsule_user".to_string());
+        let application = Application::new(1, Some("first_capsule_application".to_string()), "first_capsule_user".to_string());
         let mut domain_name_service = MockDomainNameService::new();
 
         domain_name_service.expect_add_cname_record()
@@ -142,7 +147,7 @@ mod tests {
 
     #[test]
     fn should_call_application_visitor() {
-        let application = Application::new(Some("first_capsule_application".to_string()), "first_capsule_user".to_string());
+        let application = Application::new(1, Some("first_capsule_application".to_string()), "first_capsule_user".to_string());
 
         let result = application.accept(test_saver).save();
 
@@ -151,7 +156,7 @@ mod tests {
 
     #[test]
     fn should_rename_application() {
-        let mut application = Application::new(Some("first_capsule_application".to_string()), "first_capsule_user".to_string());
+        let mut application = Application::new(1, Some("first_capsule_application".to_string()), "first_capsule_user".to_string());
 
         application.rename("new_name");
 
@@ -169,7 +174,7 @@ mod tests {
         }
     }
 
-    fn test_saver(app_id: i64, name: &str, owner: &str) -> Saver {
+    fn test_saver(app_id: i64, name: &str, owner: &str, _: SystemTime) -> Saver {
         Saver { name: name.to_string(), owner: owner.to_string() }
     }
 }
