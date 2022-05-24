@@ -85,11 +85,11 @@ impl Updater for PgUpdater {
 }
 
 impl PgUpdater {
-    fn get_application_id(app_id: i64, name: &str, _: &str, _: SystemTime) -> i64 {
+    fn get_application_id(app_id: i64, _: &str, _: &str, _: SystemTime) -> i64 {
         app_id
     }
 
-    fn get_application_name(app_id: i64, name: &str, _: &str, _: SystemTime) -> String {
+    fn get_application_name(_: i64, name: &str, _: &str, _: SystemTime) -> String {
         name.to_string()
     }
 }
