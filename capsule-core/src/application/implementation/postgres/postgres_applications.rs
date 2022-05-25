@@ -15,7 +15,6 @@ use std::sync::Arc;
 use std::time::SystemTime;
 
 use diesel::{ExpressionMethods, insert_into, PgConnection, QueryDsl, RunQueryDsl};
-use diesel::associations::HasTable;
 use diesel::pg::Pg;
 use diesel::result::Error;
 

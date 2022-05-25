@@ -1,0 +1,1 @@
+DROP TABLE capsule_user_credentials;
