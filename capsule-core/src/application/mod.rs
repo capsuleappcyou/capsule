@@ -18,7 +18,7 @@ use derive_more::{Display, Error};
 use rand::Rng;
 
 pub use crate::application::domain_name::{CnameRecord, DomainNameService};
-pub use crate::application::git::{GitRepository, GitService};
+pub use crate::application::git::{GitError, GitRepository, GitService};
 pub use crate::application::implementation::domain_name_service::NameCheapDomainNameService;
 pub use crate::application::implementation::git_service::DefaultGitService;
 
@@ -50,6 +50,12 @@ pub trait Updater {
 }
 
 pub type ApplicationVisitor<T> = fn(id: i64, &str, &str, create_at: SystemTime) -> T;
+
+impl From<GitError> for ApplicationError {
+    fn from(_: GitError) -> Self {
+        ApplicationError::GitError {message: "git".to_string()}
+    }
+}
 
 impl Application {
     pub fn new(id: i64, new_app_name: Option<String>, owner: String) -> Self {

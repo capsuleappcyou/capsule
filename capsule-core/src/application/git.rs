@@ -11,14 +11,18 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+use derive_more::{Display, Error};
 #[cfg(test)]
 use mockall::{automock, predicate::*};
 
 use crate::application::ApplicationError;
 
+#[derive(Debug, Error, Display)]
+pub struct GitError;
+
 #[cfg_attr(test, automock)]
 pub trait GitService {
-    fn create_repo(&self, owner: &str, app_name: &str) -> Result<GitRepository, ApplicationError>;
+    fn create_repo(&self, owner: &str, app_name: &str) -> Result<GitRepository, GitError>;
 }
 
 pub struct GitRepository {
