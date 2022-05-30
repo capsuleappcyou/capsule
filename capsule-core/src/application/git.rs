@@ -15,8 +15,6 @@ use derive_more::{Display, Error};
 #[cfg(test)]
 use mockall::{automock, predicate::*};
 
-use crate::application::ApplicationError;
-
 #[derive(Debug, Error, Display)]
 pub struct GitError;
 
