@@ -17,7 +17,7 @@ use std::time::SystemTime;
 use diesel::{ExpressionMethods, insert_into, PgConnection, QueryDsl, RunQueryDsl};
 use diesel::result::Error;
 
-use crate::application::{Application, ApplicationVisitor, Updater};
+use crate::application::{Application, Updater};
 use crate::application::applications::Applications;
 use crate::application::implementation::postgres::models::{NewApplication, SavedApplication};
 use crate::application::implementation::postgres::schema::capsule_applications;
